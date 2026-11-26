@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f0e6" />
+  <meta name="description" content="季忆：一段走过春夏秋冬的对话。拖动旋转，让季节发生。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="季忆 · Seasons in Memory" />
+  <meta property="og:description" content="一段走过春夏秋冬的对话。转动展柜，让树开花。" />
+  <meta property="og:image" content="./docs/share.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="季忆 · 春季定格" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="季忆 · Seasons in Memory" />
+  <meta name="twitter:description" content="一段走过春夏秋冬的对话。转动展柜，让树开花。" />
+  <meta name="twitter:image" content="./docs/share.jpg" />
+  <link rel="image_src" href="./docs/share.jpg" />
+  <title>季忆 · Seasons in Memory</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23f7f1e6'/%3E%3Cg fill='none' stroke='%23b46b74' stroke-width='1.5'%3E%3Cpath d='M16 16c-4-2-5-6-3-9 4-1 7 3 7 6 0 1 0 2-1 3'/%3E%3Cpath d='M16 16c2-4 6-5 9-3 1 4-3 7-6 7-1 0-2 0-3-1'/%3E%3Cpath d='M16 16c4 2 5 6 3 9-4 1-7-3-7-6 0-1 0-2 1-3'/%3E%3Cpath d='M16 16c-2 4-6 5-9 3-1-4 3-7 6-7 1 0 2 0 3 1'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-label="可以旋转的四季树"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="季忆">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.05">
+            <path d="M12 11.2c-2.7-1.4-3.6-4.1-2.4-6.5 2.5-.5 4.8 1.7 4.8 4.3 0 .8-.2 1.6-.6 2.2" />
+            <path d="M12 11.2c-1.4-2.7-4.1-3.6-6.5-2.4-.5 2.5 1.7 4.8 4.3 4.8.8 0 1.6-.2 2.2-.6" />
+            <path d="M12 11.2c2.7 1.4 3.6 4.1 2.4 6.5-2.5.5-4.8-1.7-4.8-4.3 0-.8.2-1.6.6-2.2" />
+            <path d="M12 11.2c1.4 2.7 4.1 3.6 6.5 2.4.5-2.5-1.7-4.8-4.3-4.8-.8 0-1.6.2-2.2.6" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-cn">季忆</span>
+          <span class="brand-en">Seasons in Memory</span>
+        </span>
+      </a>
+
+      <div class="topbar-right">
+        <span class="counter" id="counter" aria-hidden="true">01 / 04</span>
+        <button class="gift-btn" id="giftBtn" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+            <rect x="3.2" y="6.4" width="17.6" height="12.4" rx="1.6" />
+            <path d="M3.6 7.4 12 13l8.4-5.6" />
+          </svg>
+          <span>小礼物</span>
+          <i class="gift-dot" id="giftDot" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <section class="letter" id="letter" aria-live="polite" aria-label="这一季的对话">
+      <div class="letter-top">
+        <span class="letter-no" id="letterNo">01</span>
+        <span class="letter-rule" aria-hidden="true"></span>
+        <span class="letter-season" id="letterSeason">春 · 玉兰</span>
+        <span class="letter-state" id="letterState">SPRING</span>
+      </div>
+      <div class="dialogue" id="dialogue"></div>
+      <div class="letter-foot">
+        <span class="season-dots" id="seasonDots" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </span>
+        <span class="letter-note" id="letterNote">拖动旋转，收集四季</span>
+      </div>
+    </section>
+
+    <div class="hold" id="hold">
+      <button class="ripple" id="ripple" type="button" aria-label="确认并进入这一季">
+        <span class="ring ring-a" aria-hidden="true"></span>
+        <span class="ring ring-b" aria-hidden="true"></span>
+        <span class="ripple-core" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <button class="night-btn" id="nightBtn" type="button" aria-pressed="false" aria-label="切换到夜色" title="切换昼夜">
+      <span class="night-icon" aria-hidden="true">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M20 14.2A7.8 7.8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z" />
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <circle cx="12" cy="12" r="4.1" />
+          <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" />
+        </svg>
+      </span>
+    </button>
+
+    <div class="hint" id="hint"><span>左右旋转</span></div>
+
+    <div class="gift-layer" id="giftLayer" hidden>
+      <div class="gift-backdrop" data-close></div>
+      <div class="gift-card" role="dialog" aria-modal="true" aria-labelledby="giftTitle" aria-describedby="giftText">
+        <button class="gift-close" type="button" data-close aria-label="关闭礼物">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+        <p class="gift-kicker">A SMALL GIFT</p>
+        <h2 class="gift-title" id="giftTitle">给你的小礼物</h2>
+        <div class="gift-art" aria-hidden="true">
+          <svg class="bookmark" viewBox="0 0 132 208" fill="none">
+            <defs>
+              <linearGradient id="bmPaper" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fffdf7" />
+                <stop offset="1" stop-color="#f2ecdf" />
+              </linearGradient>
+              <linearGradient id="bmStem" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8d9a76" />
+                <stop offset="1" stop-color="#6f7c5d" />
+              </linearGradient>
+              <linearGradient id="bmPetal" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f5c6c2" />
+                <stop offset="1" stop-color="#d99596" />
+              </linearGradient>
+            </defs>
+            <rect x="10.5" y="1.5" width="111" height="205" rx="3.5" fill="url(#bmPaper)" stroke="#d8cfbe" stroke-width="1" />
+            <path d="M66 198V92" stroke="url(#bmStem)" stroke-width="1.6" stroke-linecap="round" />
+            <path d="M66 132c-11-4-19-12-18-24 12 0 20 8 20 20" fill="#b9c19f" fill-opacity=".85" />
+            <path d="M66 156c10-4 17-11 17-21-11 0-18 7-18 18" fill="#c9cfb2" fill-opacity=".9" />
+            <g>
+              <ellipse cx="66" cy="73" rx="11" ry="18" fill="url(#bmPetal)" transform="rotate(-18 66 73)" />
+              <ellipse cx="66" cy="73" rx="11" ry="18" fill="url(#bmPetal)" transform="rotate(72 66 73)" />
+              <ellipse cx="66" cy="73" rx="11" ry="18" fill="url(#bmPetal)" transform="rotate(162 66 73)" />
+              <ellipse cx="66" cy="73" rx="11" ry="18" fill="url(#bmPetal)" transform="rotate(252 66 73)" />
+              <ellipse cx="66" cy="73" rx="11" ry="18" fill="url(#bmPetal)" transform="rotate(342 66 73)" />
+            </g>
+            <circle cx="66" cy="73" r="6.4" fill="#e8b66b" />
+            <circle cx="66" cy="73" r="2.2" fill="#c48a41" />
+            <text x="66" y="186" text-anchor="middle" font-family="Songti SC, SimSun, serif" font-size="9.4" fill="#8c8476" letter-spacing="2.4">四季 · 2026</text>
+          </svg>
+        </div>
+        <p class="gift-text" id="giftText">走完四季，再拆开它。</p>
+        <p class="gift-sign">— 季忆</p>
+      </div>
+    </div>
+
+    <p class="sr-only" id="live" aria-live="polite"></p>
+    <noscript><div class="no-js">请开启 JavaScript，才能转动这棵树。</div></noscript>
+  </div>
+
+  <script defer src="./assets/js/math.js"></script>
+  <script defer src="./assets/js/gl.js"></script>
+  <script defer src="./assets/js/world.js"></script>
+  <script defer src="./assets/js/app.js"></script>
+</body>
+</html>

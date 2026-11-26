@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f0e6" />
+  <title>季忆 · 一页空白</title>
+  <style>
+    :root {
+      --serif: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
+      --mono: "Cascadia Mono", "Consolas", "SF Mono", "Courier New", monospace;
+      --paper: #f7f2e8;
+      --ink: #3a352c;
+      --muted: #8d8576;
+      --accent: #d18490;
+      --accent-deep: #a85f6b;
+      --line: rgba(50, 46, 39, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--serif);
+      overflow: hidden;
+      transition: background 0.8s ease;
+    }
+    body.season-summer { --paper: #eef6ed; --accent: #5e8f63; --accent-deep: #3c6b46; --ink: #2f3a2e; }
+    body.season-autumn { --paper: #fbf1e1; --accent: #c07140; --accent-deep: #95502d; --ink: #3d3227; }
+    body.season-winter { --paper: #edf3f8; --accent: #6d8ba1; --accent-deep: #48687f; --ink: #2e3740; }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.5;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.07'/%3E%3C/svg%3E");
+    }
+    .page {
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+    }
+    .glyph {
+      font-size: min(46vw, 46vh);
+      line-height: 1;
+      color: var(--accent);
+      opacity: 0.14;
+      position: absolute;
+      user-select: none;
+      filter: blur(0.3px);
+      transform: translateY(-2vh);
+      animation: breathe 9s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: translateY(-2vh) scale(1); opacity: 0.13; }
+      50% { transform: translateY(-2.4vh) scale(1.02); opacity: 0.17; }
+    }
+    .content { position: relative; z-index: 2; max-width: 460px; }
+    .kicker {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.26em;
+      color: var(--accent-deep);
+      margin: 0 0 18px;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-weight: 400;
+      font-size: clamp(24px, 4.4vw, 34px);
+      letter-spacing: 0.16em;
+    }
+    p.note {
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 2;
+      letter-spacing: 0.05em;
+    }
+    .rule {
+      width: 42px;
+      height: 1px;
+      margin: 32px auto 0;
+      background: var(--line);
+    }
+    a.back {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 30px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: var(--accent-deep);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      padding-bottom: 3px;
+      transition: border-color 0.3s;
+    }
+    a.back:hover { border-color: var(--accent); }
+    a.back svg { width: 13px; height: 13px; }
+    .corner {
+      position: fixed;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .corner.left { left: 26px; bottom: 24px; }
+    .corner.right { right: 26px; bottom: 24px; }
+    .enter { animation: enter 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+    }
+  </style>
+</head>
+<body class="season-spring">
+  <div class="page">
+    <div class="glyph" id="glyph" aria-hidden="true">春</div>
+    <div class="content enter">
+      <p class="kicker" id="kicker">LETTER 01 · SPRING</p>
+      <h1 id="title">这一页，还空着。</h1>
+      <p class="note" id="note">等春天把句子写完，<br>它就会出现在这里。</p>
+      <div class="rule" aria-hidden="true"></div>
+      <a class="back" href="./index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+          <path d="M19 12H5M11 6l-6 6 6 6" />
+        </svg>
+        回到四季
+      </a>
+    </div>
+  </div>
+  <span class="corner left">SEASONS IN MEMORY</span>
+  <span class="corner right">2026</span>
+
+  <script>
+    (function () {
+      var data = {
+        spring: { cls: 'season-spring', glyph: '春', kicker: 'LETTER 01 · SPRING', title: '这一页，还空着。', note: '等春天把句子写完，<br>它就会出现在这里。' },
+        summer: { cls: 'season-summer', glyph: '夏', kicker: 'LETTER 02 · SUMMER', title: '这一页，还空着。', note: '雨声很长，字还没有落下。' },
+        autumn: { cls: 'season-autumn', glyph: '秋', kicker: 'LETTER 03 · AUTUMN', title: '这一页，还空着。', note: '叶子已经写好了，只差一个落款。' },
+        winter: { cls: 'season-winter', glyph: '冬', kicker: 'LETTER 04 · WINTER', title: '这一页，还空着。', note: '雪先落下来，句子可以慢一点。' },
+        bloom: { cls: 'season-spring', glyph: '花', kicker: 'BLOOM · A SMALL GIFT', title: '花开的那一页。', note: '花只开一会儿。你把这一刻留住了。' }
+      };
+      var key = new URLSearchParams(location.search).get('season') || 'spring';
+      var d = data[key] || data.spring;
+      document.body.className = d.cls;
+      document.getElementById('glyph').textContent = d.glyph;
+      document.getElementById('kicker').textContent = d.kicker;
+      document.getElementById('title').textContent = d.title;
+      document.getElementById('note').innerHTML = d.note;
+      document.title = '季忆 · ' + d.glyph;
+    })();
+  </script>
+</body>
+</html>
