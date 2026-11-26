@@ -88,34 +88,34 @@
     const narrow = aspect < 1.28 || mobile;
     let halfH;
     if (narrow) {
-      // portrait / square: the lantern and its reflection sit under the glyph
-      halfH = Math.max(9.2, 8.2 / (2 * aspect));
+      // portrait / square: a large lantern, glyph above it
+      halfH = Math.max(8.0, 7.4 / (2 * aspect));
       if (mobile) {
         halfH = Math.max(halfH, (9.2 / (availableH / h)) * 0.5);
       }
     } else {
       // landscape: the glyph floats to the right of the lantern
-      halfH = Math.max(6.2, 8.4 / (2 * aspect));
+      halfH = Math.max(5.6, 8.4 / (2 * aspect));
     }
 
     const lift = mobile ? (sheetH * 0.34 / h) * 2 * halfH : 0.1;
     camera.halfHeight = halfH;
-    camera.target = [0, 2.15 - lift, 0];
+    camera.target = [0, 2.4 - lift, 0];
 
     if (narrow) {
       camera.text = {
         x: 0,
-        y: 2 * halfH * 0.35,
+        y: 2 * halfH * 0.38,
         size: halfH * 0.38,
         depth: -6,
       };
     } else {
-      const size = halfH * 0.72;
+      const size = halfH * 0.62;
       const maxX = halfH * aspect * 0.94 - size * 0.5;
-      const x = Math.max(1.6, Math.min(2.4 + size * 0.5 - 0.4, maxX));
+      const x = Math.max(1.8, Math.min(2.4 + size * 0.5 - 0.4, maxX));
       camera.text = {
         x,
-        y: 2 * halfH * 0.27,
+        y: 2 * halfH * 0.3,
         size,
         depth: 9,
       };
@@ -292,10 +292,10 @@
   }
 
   function updateBloomCard() {
-    el.letterNo.textContent = '花';
-    el.letterSeason.textContent = '花 · 第 ' + Math.max(1, state.bloomCount) + ' 次开放';
+    el.letterNo.textContent = '—';
+    el.letterSeason.textContent = '第 ' + Math.max(1, state.bloomCount) + ' 次开放';
     el.letterState.textContent = 'BLOOM';
-    el.counter.textContent = '花 / BLOOM';
+    el.counter.textContent = 'BLOOM';
     el.letterNote.textContent = '继续拖动，它会再变回树';
     renderDialogue(BLOOM_LINES, true);
     updateDots(-1);
@@ -365,10 +365,10 @@
     if (state.bloomPending && state.turns >= state.nextBloomAt) {
       state.bloomPending = false;
       state.bloomCount += 1;
-      state.nextBloomAt = state.turns + 5;
+      state.nextBloomAt = state.turns + 2;
       state.hold.kind = 'bloom';
       state.bloomTarget = 1;
-      state.textKey = 'bloom';
+      state.textKey = '';
       updateBloomCard();
       showHold('bloom');
       return;
@@ -526,7 +526,7 @@
     }
     state.animTime += dt * state.motion;
 
-    state.textAlpha = damp(state.textAlpha, state.hold.active ? 1 : 0, 5.5, dt);
+    state.textAlpha = damp(state.textAlpha, state.hold.active && state.hold.kind !== 'bloom' ? 1 : 0, 5.5, dt);
     state.textScale = damp(state.textScale, state.hold.active ? 1 : 0.94, 6.5, dt);
     state.bloom = damp(state.bloom, state.bloomTarget, state.bloomTarget > state.bloom ? 2.0 : 3.2, dt);
     state.nightAmt = damp(state.nightAmt, state.nightOn ? 1 : 0, 2.15, dt);
@@ -535,9 +535,11 @@
     const dipAge = state.time - state.dipStart;
     let dip = 0;
     let rippleAge = -1;
-    if (dipAge >= 0 && dipAge < 2.2) {
-      dip = -0.26 * Math.sin(Math.PI * Math.min(1, dipAge / 1.15)) * Math.exp(-dipAge * 0.9);
-      if (dipAge > 0.32) rippleAge = dipAge - 0.32;
+    if (dipAge >= 0 && dipAge < 2.0) {
+      const p = clamp(dipAge / 1.6, 0, 1);
+      const settle = Math.sin(Math.PI * p) * Math.sin(Math.PI * p);
+      dip = -0.3 * settle + 0.02 * Math.sin(2 * Math.PI * p) * settle;
+      if (dipAge > 0.35) rippleAge = dipAge - 0.35;
     }
     state.dip = dip;
     state.rippleAge = rippleAge;
@@ -551,7 +553,7 @@
     }
 
     if (state.hold.active && state.hold.kind === 'bloom') {
-      state.textKey = 'bloom';
+      state.textKey = '';
     } else if (state.hold.active) {
       state.textKey = SEASONS[mod(state.hold.season, 4)].key;
     }
@@ -573,6 +575,7 @@
       pal,
       camera,
       time: state.animTime,
+      waterTime: state.time,
       dt: Math.min(0.05, dt),
       bloom: state.bloom,
       motion: state.motion,
@@ -616,7 +619,7 @@
   }
 
   /* ───────────────────────── 启动 ───────────────────────── */
-  function init() {
+  async function init() {
     reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (params.get('static') === '1') document.body.classList.add('is-static');
     installDebug();
@@ -629,6 +632,15 @@
     state.seasonUi = 0;
     state.textKey = 'spring';
     try { setCssVars(S4.PALETTES[0]); } catch (e) { /* ignore */ }
+
+    // the bundled 4.5 kB serif subset makes the five glyphs identical on every device
+    try {
+      await Promise.race([
+        document.fonts.load('400 430px "Jiyi Serif"'),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    } catch (e) { /* fall back to system serif */ }
 
     try {
       renderer = S4.gl.createRenderer(el.stage);
@@ -670,11 +682,11 @@
       state.bloom = 1;
       state.bloomTarget = 1;
       state.bloomCount = 1;
-      state.textKey = 'bloom';
+      state.textKey = '';
       state.hold.active = true;
       state.hold.kind = 'bloom';
       state.hold.t = 2;
-      state.textAlpha = 1;
+      state.textAlpha = 0;
       state.textScale = 1;
       updateBloomCard();
       showHold('bloom');
@@ -761,7 +773,7 @@
     document.getElementById('app').appendChild(div);
   }
 
-  /* 脚本在 body 末尾 defer 执行，字体全部是系统字体，无需等待 webfont */
+  /* 脚本在 body 末尾 defer 执行；字形字体是本地子集，先等它加载 */
   function boot() {
     init();
   }

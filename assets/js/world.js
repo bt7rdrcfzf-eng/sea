@@ -235,7 +235,7 @@
     ctx.clearRect(0, 0, S, S);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '430px "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif';
+    ctx.font = '430px "Jiyi Serif", "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif';
     const g = ctx.createLinearGradient(0, 80, 0, 440);
     g.addColorStop(0, '#ffffff');
     g.addColorStop(0.55, '#fffaf1');
@@ -252,7 +252,7 @@
     ctx.clearRect(0, 0, S, S);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '430px "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif';
+    ctx.font = '430px "Jiyi Serif", "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif';
     ctx.fillStyle = 'rgba(52, 42, 30, 0.6)';
     try { ctx.filter = 'blur(34px)'; } catch (e) { /* ignore */ }
     ctx.fillText(ch, S / 2, S / 2 + 8);
@@ -379,72 +379,129 @@
 
   function buildRaft() {
     const g = Geo();
-    addCylinder(g, [0, 0, 0], [0, 0.08, 0], 2.1, 2.04, 8, WOOD_DARK, WOOD_MID);
-    addCylinder(g, [0, 0.08, 0], [0, 0.16, 0], 2.04, 1.98, 8, WOOD_MID, WOOD_LIGHT);
-    addCylinder(g, [0, 0.16, 0], [0, 0.19, 0], 1.98, 1.96, 8, BRASS, BRASS);
-    addCylinder(g, [0, 0.19, 0], [0, 0.25, 0], 1.91, 1.88, 8, WOOD_DARK, CREAM_LIGHT);
-    addCylinder(g, [0, 0.25, 0], [0, 0.28, 0], 1.84, 1.82, 8, CREAM_LIGHT, CREAM_LIGHT);
+    addCylinder(g, [0, 0, 0], [0, 0.08, 0], 2.42, 2.35, 8, WOOD_DARK, WOOD_MID);
+    addCylinder(g, [0, 0.08, 0], [0, 0.16, 0], 2.35, 2.28, 8, WOOD_MID, WOOD_LIGHT);
+    addCylinder(g, [0, 0.16, 0], [0, 0.19, 0], 2.28, 2.26, 8, BRASS, BRASS);
+    addCylinder(g, [0, 0.19, 0], [0, 0.25, 0], 2.2, 2.16, 8, WOOD_DARK, CREAM_LIGHT);
+    addCylinder(g, [0, 0.25, 0], [0, 0.28, 0], 2.13, 2.1, 8, CREAM_LIGHT, CREAM_LIGHT);
 
-    const R = 1.88;
+    // plank seams on the deck
+    const planks = [-1.55, -0.52, 0.52, 1.55];
+    for (let i = 0; i < planks.length; i++) {
+      const len = i === 0 || i === 3 ? 2.15 : 2.7;
+      addBox(g, 0, 0.161, planks[i], len, 0.004, 0.008, shade(WOOD_DARK, 0.92), 0, 0);
+    }
+    // brass rivets on the rim
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU + TAU / 16;
+      addBox(g, Math.cos(a) * 2.25, 0.183, Math.sin(a) * 2.25, 0.035, 0.018, 0.035, BRASS, 0, 0);
+    }
+
+    const R = 2.16;
     const chord = 2 * R * Math.sin(Math.PI / 8);
     for (let i = 0; i < 8; i++) {
       const am = (i / 8) * TAU + TAU / 16;
-      addBox(g, Math.cos(am) * R, 0.265, Math.sin(am) * R, 0.07, 0.06, chord, WOOD_DARK, -am, 0);
+      addBox(g, Math.cos(am) * R, 0.265, Math.sin(am) * R, 0.075, 0.06, chord, WOOD_DARK, -am, 0);
     }
     return g;
   }
 
   function buildCover() {
     const g = Geo();
-    const R = 1.9, y0 = 0.3, y1 = 4.0, H = y1 - y0;
+    const R = 2.18, y0 = 0.3, y1 = 4.3, H = y1 - y0;
     const chord = 2 * R * Math.sin(Math.PI / 8);
 
-    // eight corner posts
+    // eight corner posts, with a lighter inlay and brass shoes
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * TAU;
       const x = Math.cos(a) * R, z = Math.sin(a) * R;
-      addBox(g, x, y0 + H / 2, z, 0.075, H, 0.075, WOOD_DARK, 0, 0);
-      addBox(g, x, y1 + 0.02, z, 0.11, 0.05, 0.11, BRASS, 0, 0);
-      addBox(g, x, y0 + 0.02, z, 0.11, 0.04, 0.11, BRASS, 0, 0);
+      addBox(g, x, y0 + H / 2, z, 0.085, H, 0.085, WOOD_DARK, 0, 0);
+      addBox(g, Math.cos(a) * (R + 0.048), y0 + H / 2, Math.sin(a) * (R + 0.048), 0.022, H - 0.12, 0.05, WOOD_LIGHT, 0, 0);
+      addBox(g, x, y1 + 0.02, z, 0.12, 0.055, 0.12, BRASS, 0, 0);
+      addBox(g, x, y0 + 0.02, z, 0.12, 0.045, 0.12, BRASS, 0, 0);
     }
 
-    // top ring
+    // top ring + a thin brass bead
     for (let i = 0; i < 8; i++) {
       const am = (i / 8) * TAU + TAU / 16;
-      addBox(g, Math.cos(am) * R, y1, Math.sin(am) * R, 0.06, 0.06, chord, WOOD_MID, -am, 0);
+      addBox(g, Math.cos(am) * R, y1, Math.sin(am) * R, 0.07, 0.07, chord, WOOD_MID, -am, 0);
+      addBox(g, Math.cos(am) * (R + 0.035), y1 + 0.035, Math.sin(am) * (R + 0.035), 0.02, 0.018, chord, BRASS, -am, 0);
     }
 
-    // eave fascia, overhanging the glass
-    const Re = 2.04;
+    // eave fascia, slightly proud of the glass
+    const Re = 2.36;
     const chordE = 2 * Re * Math.sin(Math.PI / 8);
     for (let i = 0; i < 8; i++) {
       const am = (i / 8) * TAU + TAU / 16;
-      addBox(g, Math.cos(am) * Re, 4.05, Math.sin(am) * Re, 0.11, 0.07, chordE, WOOD_DARK, -am, 0);
+      addBox(g, Math.cos(am) * Re, 4.37, Math.sin(am) * Re, 0.12, 0.085, chordE, WOOD_DARK, -am, 0);
+      addBox(g, Math.cos(am) * (Re + 0.035), 4.415, Math.sin(am) * (Re + 0.035), 0.022, 0.022, chordE, BRASS, -am, 0);
     }
 
-    // eight roof panels meeting at the apex
-    const apex = [0, 4.52, 0];
+    // roof surface: eight panels, with raised hips, grain and upturned tips
+    const eaveR = 2.34, eaveY = 4.42, apexY = 4.98;
+    const apex = [0, apexY, 0];
+    const roofPoint = (a, t) => {
+      const r = eaveR + (0.06 - eaveR) * t;
+      const y = eaveY + (apexY - eaveY) * t;
+      return [Math.cos(a) * r, y, Math.sin(a) * r];
+    };
+    const addRoofStrip = (a, w, t0, t1, col, lift) => {
+      const p0 = roofPoint(a - w, t0);
+      const p1 = roofPoint(a + w, t0);
+      const p2 = roofPoint(a + w, t1);
+      const p3 = roofPoint(a - w, t1);
+      let n = v3.norm(v3.cross(v3.sub(p1, p0), v3.sub(p3, p0)));
+      if (n[1] < 0) n = [-n[0], -n[1], -n[2]];
+      const o = [n[0] * lift, n[1] * lift, n[2] * lift];
+      addQuad(g, v3.add(p0, o), v3.add(p1, o), v3.add(p2, o), v3.add(p3, o), col, n);
+    };
+
     for (let i = 0; i < 8; i++) {
       const a0 = (i / 8) * TAU, a1 = ((i + 1) / 8) * TAU;
-      const p0 = [Math.cos(a0) * 2.02, 4.07, Math.sin(a0) * 2.02];
-      const p1 = [Math.cos(a1) * 2.02, 4.07, Math.sin(a1) * 2.02];
+      const p0 = [Math.cos(a0) * eaveR, eaveY, Math.sin(a0) * eaveR];
+      const p1 = [Math.cos(a1) * eaveR, eaveY, Math.sin(a1) * eaveR];
       let n = v3.norm(v3.cross(v3.sub(p1, p0), v3.sub(apex, p0)));
       if (n[1] < 0) n = [-n[0], -n[1], -n[2]];
       pushTri(g, p0, p1, apex, n, i % 2 ? WOOD_MID : WOOD);
     }
 
-    // small cap + brass finial
-    addCylinder(g, [0, 4.44, 0], [0, 4.52, 0], 0.26, 0.2, 8, WOOD_MID, WOOD_LIGHT);
-    addCylinder(g, [0, 4.52, 0], [0, 4.62, 0], 0.045, 0.035, 8, BRASS, BRASS);
-    addCylinder(g, [0, 4.62, 0], [0, 4.7, 0], 0.12, 0.1, 8, BRASS, BRASS);
-    addCylinder(g, [0, 4.7, 0], [0, 4.76, 0], 0.05, 0.015, 8, BRASS, BRASS);
+    // raised hip ribs over the panel seams
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU;
+      addRoofStrip(a, 0.032, 0.015, 0.985, WOOD_DARK, 0.022);
+    }
+    // two fine grain lines on each panel
+    for (let i = 0; i < 8; i++) {
+      const am = (i / 8) * TAU + TAU / 16;
+      addRoofStrip(am - 0.17, 0.012, 0.06, 0.9, WOOD_LIGHT, 0.012);
+      addRoofStrip(am + 0.2, 0.009, 0.1, 0.86, shade(WOOD_DARK, 0.92), 0.012);
+    }
+    // upturned eave tips
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU;
+      addBox(g, Math.cos(a) * 2.42, 4.45, Math.sin(a) * 2.42, 0.09, 0.055, 0.09, WOOD_LIGHT, -a, 0.18);
+    }
+
+    // a small drum under the finial, with its own ribs and brass band
+    addCylinder(g, [0, 4.98, 0], [0, 5.12, 0], 0.34, 0.3, 8, WOOD_MID, WOOD_LIGHT);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * TAU + TAU / 16;
+      addBox(g, Math.cos(a) * 0.325, 5.05, Math.sin(a) * 0.325, 0.022, 0.1, 0.022, WOOD_LIGHT, 0, 0);
+    }
+    addCylinder(g, [0, 5.12, 0], [0, 5.14, 0], 0.37, 0.34, 8, BRASS, BRASS);
+    addCylinder(g, [0, 5.14, 0], [0, 5.22, 0], 0.36, 0.14, 8, WOOD_DARK, WOOD_MID);
+
+    // turned brass finial
+    addCylinder(g, [0, 5.22, 0], [0, 5.3, 0], 0.035, 0.03, 8, BRASS, BRASS);
+    addCylinder(g, [0, 5.3, 0], [0, 5.38, 0], 0.1, 0.12, 8, BRASS, BRASS);
+    addCylinder(g, [0, 5.38, 0], [0, 5.48, 0], 0.045, 0.012, 8, BRASS, BRASS);
 
     return g;
   }
 
   function buildCaseGlass() {
     const g = Geo();
-    const R = 1.82, y0 = 0.34, y1 = 3.96;
+    const R = 2.1, y0 = 0.34, y1 = 4.28;
     for (let i = 0; i < 8; i++) {
       const a0 = (i / 8) * TAU, a1 = ((i + 1) / 8) * TAU;
       const am = (a0 + a1) / 2;
@@ -959,7 +1016,9 @@
     function drawFlower(bloom, pal, camera, time, night, baseModel, ghost) {
       if (bloom < 0.004) return;
       const open = smootherstep(0, 1, clamp(bloom, 0, 1));
-      const centerY = 3.16;
+      const fs = 0.86;
+      const centerY = 2.9;
+      const baseY = 0.32;
       const right = camera.right, up = camera.up, back = camera.back;
       const petalColors = [
         mixRgb(pal.petal, pal.accent, 0.22),
@@ -967,28 +1026,31 @@
         mixRgb(pal.petal, pal.accentDeep, 0.06),
       ];
 
-      // stem
-      const stemH = 0.92 * (0.2 + 0.8 * smootherstep(0, 0.55, bloom));
-      m4.compose(matA, 0, 2.24, 0, 0, 0, 0, 1, stemH, 1);
+      // a slender green flower stem rising from the raft (never the tree trunk)
+      const stemH = (centerY - baseY) * (0.2 + 0.8 * smootherstep(0, 0.55, bloom));
+      m4.compose(matA, 0.02, baseY, 0, 0, 0, 0.035, fs, stemH, fs);
       m4.multiply(matD, baseModel, matA);
-      renderer.drawMesh(stemMesh, matD, { tint: [0.34, 0.46, 0.22], tintMix: 1, ghost, opacity: ghost ? 0.42 : 1, dim: ghost ? 0.85 : 1, wave: ghost ? 0.8 : 0 });
+      renderer.drawMesh(stemMesh, matD, {
+        tint: [0.34, 0.46, 0.22], tintMix: 1, ghost,
+        opacity: ghost ? 0.34 : 1, dim: ghost ? 0.8 : 1, wave: ghost ? 0.8 : 0,
+      });
 
-      // four leaves growing from the stem
+      // four leaves along the stem
       for (let li = 0; li < 4; li++) {
         const side = li % 2 === 0 ? -1 : 1;
         const s = (0.38 + 0.62 * open) * (li < 2 ? 1 : 0.82);
-        m4.compose(matA, side * 0.08, 2.36 + li * 0.18, (li % 2 ? 0.04 : -0.04), side * (1.05 + li * 0.08), 1.02, 0, 0.42 * s, 0.9 * s, 1);
+        m4.compose(matA, side * 0.1, 1.18 + li * 0.3, (li % 2 ? 0.04 : -0.04), side * (1.05 + li * 0.08), 1.02, 0, 0.36 * s * fs, 0.78 * s * fs, 1);
         m4.multiply(matD, baseModel, matA);
         renderer.drawMesh(petalMesh, matD, {
           tint: [0.4, 0.53, 0.27], tintMul: 1, ghost,
-          opacity: ghost ? 0.42 : 1, dim: ghost ? 0.85 : 1, wave: ghost ? 0.8 : 0,
+          opacity: ghost ? 0.34 : 1, dim: ghost ? 0.8 : 1, wave: ghost ? 0.8 : 0,
         });
       }
 
       // warm halo behind the bloom
       if (!ghost) {
-        const cw = [0, centerY + 0.25, -0.4];
-        m4.billboard(matD, right, up, back, cw, 0, 4.2 * open, 4.2 * open);
+        const cw = [0, centerY + 0.22, -0.4];
+        m4.billboard(matD, right, up, back, cw, 0, 3.7 * open, 3.7 * open);
         renderer.drawSprite(tex.glow, matD, pal.petal, 0.14 * open + night * 0.16, 'add');
       }
 
@@ -1000,8 +1062,8 @@
           const local = clamp((bloom - P.delay) / (1 - P.delay), 0, 1);
           if (local <= 0.002) continue;
           const k = smootherstep(0, 1, local);
-          const len = P.len * (0.18 + 0.82 * k);
-          const halfW = P.halfW * (0.45 + 0.55 * k);
+          const len = P.len * fs * (0.18 + 0.82 * k);
+          const halfW = P.halfW * fs * (0.45 + 0.55 * k);
           const tilt = P.tilt * (0.32 + 0.68 * k);
           m4.compose(matA, 0, centerY, 0, P.a, tilt, 0, halfW * 2, len, 1);
           m4.multiply(matD, baseModel, matA);
@@ -1010,24 +1072,24 @@
             tintMul: 1,
             emissive: 0.3 - layer * 0.02 + night * 0.45,
             ghost,
-            opacity: ghost ? 0.42 : 1,
-            dim: ghost ? 0.85 : 1,
+            opacity: ghost ? 0.34 : 1,
+            dim: ghost ? 0.8 : 1,
             wave: ghost ? 0.8 : 0,
           });
         }
       }
 
       // heart of the flower
-      const coreScale = 0.58 + 0.47 * open;
-      m4.compose(matA, 0, 3.22, 0, 0, 0, 0, coreScale, coreScale, coreScale);
+      const coreScale = (0.58 + 0.47 * open) * fs;
+      m4.compose(matA, 0, centerY + 0.06, 0, 0, 0, 0, coreScale, coreScale, coreScale);
       m4.multiply(matD, baseModel, matA);
       renderer.drawMesh(flowerCoreMesh, matD, {
         emissive: 0.16 + night * 0.32, ghost,
-        opacity: ghost ? 0.42 : 1, dim: ghost ? 0.85 : 1, wave: ghost ? 0.8 : 0,
+        opacity: ghost ? 0.34 : 1, dim: ghost ? 0.8 : 1, wave: ghost ? 0.8 : 0,
       });
 
       if (!ghost) {
-        m4.billboard(matC, right, up, back, [0, 3.27, 0], 0, 1.25 * open, 1.25 * open);
+        m4.billboard(matC, right, up, back, [0, centerY + 0.11, 0], 0, 1.1 * open, 1.1 * open);
         renderer.drawSprite(tex.glow, matC, pal.petalCenter, 0.18 + night * 0.5, 'add');
       }
     }
@@ -1077,8 +1139,9 @@
 
     /* main draw ------------------------------------------------ */
     function draw(state) {
-      const { angle, pal, camera, time, dt, bloom, text, motion, floatY, rippleAge } = state;
+      const { angle, pal, camera, time, dt, bloom, text, motion, floatY, rippleAge, waterTime } = state;
       const night = state.night || 0;
+      const wt = waterTime == null ? time : waterTime;
       const coverAmt = smootherstep(0.02, 0.55, bloom);
       const lift = coverAmt * 13.0;
       const bgTop = mixRgb(pal.bgTop, [0.04, 0.06, 0.1], night);
@@ -1087,7 +1150,7 @@
       const bgGlow = mixRgb(pal.glow, [0.12, 0.1, 0.075], night);
       const fy = floatY == null ? 0.04 : floatY;
 
-      renderer.state.time = time;
+      renderer.state.time = wt;
       renderer.setLight({
         dir: v3.norm([-0.46, 0.82, 0.34]),
         color: mixRgb(pal.light, [1.0, 0.8, 0.52], night),
@@ -1103,7 +1166,7 @@
         top: bgTop, mid: bgMid, bottom: bgBottom,
         glow: bgGlow, glowPos: [0.54, 0.5],
       });
-      drawNightSky(camera, time, night, pal);
+      drawNightSky(camera, wt, night, pal);
 
       // the lantern floats; the season arrival adds a small dip
       m4.compose(groupModel, 0, fy, 0, angle, 0, 0, 1, 1, 1);
@@ -1122,13 +1185,16 @@
         lerp(pal.trunk[2], 0.24, bloom * 0.8),
       ];
       const ghost = { ghost: true, opacity: 0.34, dim: 0.62, wave: 1.0 };
-      const ghostTree = { ghost: true, opacity: 0.34, dim: 0.62, wave: 1.0, tint: trunkTint, tintMix: 0.5 };
-      const ghostLeaf = { ghost: true, opacity: 0.34, dim: 0.62, wave: 1.0, emissive: night * 0.2 };
+      const treeFade = 1 - smootherstep(0.16, 0.55, bloom);
+      const ghostTree = { ghost: true, opacity: 0.34 * treeFade, dim: 0.62, wave: 1.0, tint: trunkTint, tintMix: 0.5 };
+      const ghostLeaf = { ghost: true, opacity: 0.34 * treeFade, dim: 0.62, wave: 1.0, emissive: night * 0.2 };
 
       // reflection of the floating lantern, before the water surface
       renderer.drawMesh(raftMesh, reflGroup, ghost);
-      renderer.drawMesh(treeMesh, reflTree, ghostTree);
-      renderer.drawInstances(leafInst, leafCount, reflTree, ghostLeaf);
+      if (treeFade > 0.01) {
+        renderer.drawMesh(treeMesh, reflTree, ghostTree);
+        renderer.drawInstances(leafInst, leafCount, reflTree, ghostLeaf);
+      }
       drawFlower(bloom, pal, camera, time, night, reflGroup, true);
       renderer.drawMesh(coverMesh, reflCover, ghost);
       renderer.drawGlass(glassMesh, reflCover, pal.glass, glassAlpha * 0.5 * (1 - coverAmt * 0.94));
@@ -1155,14 +1221,16 @@
 
       // contact shadow on the water
       renderer.setDepth(false, true);
-      m4.basis(contactModel, [4.4, 0, 0], [0, 0, -4.4], [0, 1, 0], [0, 0.016, 0]);
+      m4.basis(contactModel, [5.0, 0, 0], [0, 0, -5.0], [0, 1, 0], [0, 0.016, 0]);
       renderer.drawSprite(tex.shadow, contactModel, [0.08, 0.09, 0.08], 0.22, 'normal');
       renderer.setDepth(true, true);
 
       // actual lantern above the water
       renderer.drawMesh(raftMesh, groupModel);
-      renderer.drawMesh(treeMesh, treeModel, { tint: trunkTint, tintMix: 0.5 });
-      renderer.drawInstances(leafInst, leafCount, treeModel, { emissive: night * 0.2 });
+      if (treeFade > 0.01) {
+        renderer.drawMesh(treeMesh, treeModel, { tint: trunkTint, tintMix: 0.5, opacity: treeFade });
+        renderer.drawInstances(leafInst, leafCount, treeModel, { emissive: night * 0.2, opacity: treeFade });
+      }
       drawFlower(bloom, pal, camera, time, night, groupModel, false);
 
       if (night > 0.02) {
@@ -1217,7 +1285,7 @@
 
       renderer.drawGlass(glassMesh, coverModel, pal.glass, glassAlpha * (1 - coverAmt * 0.94));
 
-      drawFireflies(camera, time, night);
+      drawFireflies(camera, wt, night);
 
       const pCount = updateParticles(dt * (motion == null ? 1 : motion), time, angle, bloom);
       renderer.setDepth(false, true);

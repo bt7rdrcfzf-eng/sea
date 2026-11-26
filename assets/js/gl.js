@@ -231,18 +231,19 @@ void main() {
   col = mix(col, uSky, smoothstep(12.0, 48.0, dist) * 0.55);
 
   float age = uRippleAge;
-  if (age > 0.0 && age < 6.0) {
+  if (age > 0.0 && age < 6.5) {
     float dCenter = length(p - uRippleCenter);
-    // the wave starts at the raft edge, not under it
-    float d = max(0.0, dCenter - 1.85);
-    float front = age * 2.2;
-    float ring = exp(-pow((d - front) * 2.0, 2.0));
-    float ring2 = exp(-pow((d - front * 0.55) * 3.2, 2.0)) * 0.5;
-    float fade = exp(-age * 0.65) * (1.0 - smoothstep(0.0, 20.0, dCenter));
-    col += uLight * (ring + ring2) * fade * 0.34 * uRippleStrength;
-    col *= 1.0 - 0.10 * exp(-dCenter * dCenter * 0.35) * exp(-age * 1.4) * uRippleStrength;
+    // the wave starts at the raft edge, then decelerates and diffuses
+    float d = max(0.0, dCenter - 2.3);
+    float front = 2.1 * age / (1.0 + 0.12 * age);
+    float width = 0.8 + age * 0.45;
+    float ring = exp(-pow((d - front) / width, 2.0)) * smoothstep(0.0, 0.35, age);
+    float ring2 = exp(-pow((d - front * 0.58) / (width * 0.7), 2.0)) * smoothstep(0.1, 0.5, age) * 0.45;
+    float fade = exp(-age * 0.45) * (1.0 - smoothstep(4.5, 6.3, age)) * (1.0 - smoothstep(0.0, 22.0, dCenter));
+    col += uLight * (ring + ring2) * fade * 0.44 * uRippleStrength;
+    col *= 1.0 - 0.08 * exp(-dCenter * dCenter * 0.35) * exp(-age * 1.4) * uRippleStrength;
   }
-  float waterline = exp(-pow((length(p) - 2.06) * 6.0, 2.0)) * 0.055;
+  float waterline = exp(-pow((length(p) - 2.42) * 6.0, 2.0)) * 0.055;
   col += uLight * waterline;
 
   float glint = smoothstep(0.55, 1.0, 0.5 + grad.x * 0.3 + grad.y * 0.2);
@@ -554,9 +555,14 @@ void main() {
       gl.uniform1f(lit.u('uWave'), o.wave || 0);
       gl.uniform1f(lit.u('uWaveTime'), state.time);
       gl.bindVertexArray(mesh.vao);
+      const op = o.opacity == null ? 1 : o.opacity;
       if (o.ghost) {
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
+        setBlend('normal');
+      } else if (op < 0.999) {
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
         setBlend('normal');
       } else {
         gl.enable(gl.DEPTH_TEST);
@@ -584,9 +590,14 @@ void main() {
       gl.bindBuffer(gl.ARRAY_BUFFER, instanceMesh.inst);
       gl.bufferSubData(gl.ARRAY_BUFFER, 0, instanceMesh.data.subarray(0, count * 11));
       gl.bindVertexArray(instanceMesh.vao);
+      const op = o.opacity == null ? 1 : o.opacity;
       if (o.ghost) {
         gl.disable(gl.DEPTH_TEST);
         gl.depthMask(false);
+        setBlend('normal');
+      } else if (op < 0.999) {
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
         setBlend('normal');
       } else {
         gl.enable(gl.DEPTH_TEST);

@@ -1,11 +1,19 @@
 /* ─────────────────────────────────────────────────────────────
-   四季来信 · Letters in Four Seasons
+   季忆 · Seasons in Memory
    ───────────────────────────────────────────────────────────── */
 
+@font-face {
+  font-family: "Jiyi Serif";
+  src: url("../fonts/jiyi-serif.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
-  --serif: "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
-  --sans: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
-  --mono: "Cascadia Mono", "Consolas", "SF Mono", "Courier New", monospace;
+  --serif: "Jiyi Serif", "Songti SC", "STSong", "SimSun", "Noto Serif SC", Georgia, serif;
+  --sans: "Jiyi Serif", "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  --mono: "Jiyi Serif", "Cascadia Mono", "Consolas", "SF Mono", "Courier New", monospace;
 
   --paper: #f6f1e7;
   --phone: #fffdf8;
@@ -197,6 +205,9 @@ a { color: inherit; }
 }
 
 /* dialogue card ------------------------------------------------- */
+/* the season letter now lives on its own page; the main stage stays clean */
+#letter { display: none !important; }
+
 .letter {
   position: absolute;
   z-index: 8;
