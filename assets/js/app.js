@@ -105,7 +105,7 @@
     if (narrow) {
       camera.text = {
         x: 0,
-        y: 2 * halfH * 0.38,
+        y: 2 * halfH * 0.28,
         size: halfH * 0.38,
         depth: -6,
       };
@@ -115,7 +115,7 @@
       const x = Math.max(1.8, Math.min(2.4 + size * 0.5 - 0.4, maxX));
       camera.text = {
         x,
-        y: 2 * halfH * 0.3,
+        y: 2 * halfH * 0.22,
         size,
         depth: 9,
       };
@@ -167,7 +167,7 @@
     bloom: 0,
     bloomTarget: 0,
     bloomPending: false,
-    nextBloomAt: 2,
+    nextBloomAt: 1,
     bloomCount: 0,
     visited: [false, false, false, false],
     textAlpha: 0,
@@ -370,7 +370,7 @@
     if (state.bloomPending && state.turns >= state.nextBloomAt) {
       state.bloomPending = false;
       state.bloomCount += 1;
-      state.nextBloomAt = state.turns + 2;
+      state.nextBloomAt = state.turns + 1;
       state.hold.kind = 'bloom';
       state.bloomTarget = 1;
       state.textKey = '';

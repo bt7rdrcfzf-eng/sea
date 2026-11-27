@@ -218,42 +218,95 @@ uniform vec2 uRippleCenter;
 uniform float uRippleAge;
 uniform float uRippleStrength;
 out vec4 fragColor;
+
+float hash21(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+             mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+
 void main() {
   vec2 p = vWorld.xz;
-  float w1 = sin(p.x * 0.75 + uTime * 0.32) * 0.5 + sin(p.y * 1.05 - uTime * 0.24) * 0.5;
-  float w2 = sin((p.x + p.y) * 1.7 + uTime * 0.45);
-  vec2 grad = vec2(
-    cos(p.x * 0.75 + uTime * 0.32) * 0.55 + cos((p.x + p.y) * 1.7 + uTime * 0.45) * 0.6,
-    cos(p.y * 1.05 - uTime * 0.24) * 0.4 + cos((p.x + p.y) * 1.7 + uTime * 0.45) * 0.6
-  );
-  float dist = length(p);
-  vec3 col = mix(uShallow, uDeep, smoothstep(0.0, 16.0, dist));
-  col = mix(col, uSky, smoothstep(12.0, 48.0, dist) * 0.55);
+  float t = uTime;
+  float h = 0.0;
+  vec2 g = vec2(0.0);
 
+  // four overlapping wind-wave directions
+  float a1 = 0.58;
+  float ph1 = p.x * 0.42 + p.y * 0.19 + t * 0.27;
+  h += a1 * sin(ph1);
+  g += a1 * vec2(cos(ph1) * 0.42, cos(ph1) * 0.19);
+  float a2 = 0.40;
+  float ph2 = p.x * 0.83 - p.y * 0.51 - t * 0.35;
+  h += a2 * sin(ph2);
+  g += a2 * vec2(cos(ph2) * 0.83, -cos(ph2) * 0.51);
+  float a3 = 0.22;
+  float ph3 = p.x * 1.57 + p.y * 1.21 + t * 0.52;
+  h += a3 * sin(ph3);
+  g += a3 * vec2(cos(ph3) * 1.57, cos(ph3) * 1.21);
+  float a4 = 0.10;
+  float ph4 = p.x * 2.83 - p.y * 2.27 - t * 0.79;
+  h += a4 * sin(ph4);
+  g += a4 * vec2(cos(ph4) * 2.83, -cos(ph4) * 2.27);
+
+  // slow swell
+  float ph5 = p.x * 0.13 + p.y * 0.10 + t * 0.11;
+  h += 0.55 * sin(ph5);
+  g += 0.55 * vec2(cos(ph5) * 0.13, cos(ph5) * 0.10);
+
+  // gust patches: the surface amplitude changes from place to place
+  float gustA = vnoise(p * 0.16 + vec2(t * 0.032, -t * 0.018));
+  float gustB = vnoise(p * 0.37 - vec2(t * 0.045, t * 0.027));
+  float gust = 0.55 + 0.70 * gustA * (0.4 + 0.6 * gustB);
+  h *= gust;
+  g *= gust;
+
+  float dist = length(p);
+
+  // ripple: thin concentric waves; they disturb the normal and darken troughs
   float age = uRippleAge;
+  float rippleElev = 0.0;
   if (age > 0.0 && age < 7.5) {
-    float dCenter = length(p - uRippleCenter);
-    // the wave starts at the raft edge, then decelerates and diffuses
+    vec2 rel = p - uRippleCenter;
+    float dCenter = length(rel);
+    vec2 dir = dCenter > 0.0001 ? rel / dCenter : vec2(1.0, 0.0);
     float d = max(0.0, dCenter - 2.3);
     float front = 2.1 * age / (1.0 + 0.12 * age);
-    float width = 0.8 + age * 0.45;
-    float ring = exp(-pow((d - front) / width, 2.0)) * smoothstep(0.0, 0.35, age);
-    float ring2 = exp(-pow((d - front * 0.58) / (width * 0.7), 2.0)) * smoothstep(0.1, 0.5, age) * 0.45;
-    float fade = exp(-age * 0.32) * (1.0 - smoothstep(3.6, 6.9, age)) * (1.0 - smoothstep(0.0, 22.0, dCenter));
-    col += uLight * (ring + ring2) * fade * 0.44 * uRippleStrength;
-    col *= 1.0 - 0.08 * exp(-dCenter * dCenter * 0.35) * exp(-age * 1.4) * uRippleStrength;
+    float width = 0.6 + age * 0.30;
+    float env = exp(-pow((d - front) / width, 2.0)) * smoothstep(0.0, 0.30, age);
+    float fade = exp(-age * 0.32) * (1.0 - smoothstep(3.6, 6.9, age)) * uRippleStrength;
+    float phase = (d - front) * 7.0;
+    rippleElev = sin(phase) * env * fade;
+    float slope = cos(phase) * 7.0 * env * fade;
+    h += rippleElev * 0.04;
+    g += dir * slope * 0.10;
   }
-  float waterline = exp(-pow((length(p) - 2.42) * 6.0, 2.0)) * 0.055;
-  col += uLight * waterline;
 
-  float glint = smoothstep(0.55, 1.0, 0.5 + grad.x * 0.3 + grad.y * 0.2);
-  col += uLight * glint * 0.05;
-  float bands = smoothstep(0.72, 1.0, w1 * 0.5 + 0.5) * 0.055;
-  col += uLight * bands;
-  col *= 1.0 - 0.04 * (0.5 + 0.5 * w2);
-  float fres = smoothstep(5.0, 26.0, dist);
-  col = mix(col, uSky, fres * 0.25);
-  float alpha = mix(0.48, 0.72, fres);
+  vec3 n = normalize(vec3(-g.x * 0.04, 1.0, -g.y * 0.04));
+  vec3 lightDir = normalize(vec3(-0.35, 0.75, 0.42));
+  float spec = pow(max(dot(n, lightDir), 0.0), 70.0);
+  float spec2 = pow(max(dot(n, normalize(vec3(0.45, 0.55, -0.55))), 0.0), 30.0);
+
+  vec3 col = mix(uShallow, uDeep, smoothstep(0.0, 18.0, dist));
+  col = mix(col, uSky, smoothstep(14.0, 50.0, dist) * 0.55);
+  float shade = clamp(h * 0.10, -0.6, 0.6);
+  col *= 1.0 + shade * 0.75;
+  col += uLight * spec * 0.7;
+  col += uLight * spec2 * 0.16;
+  if (age > 0.0 && age < 7.5) {
+    col *= 1.0 - rippleElev * 0.20;
+    col += uLight * max(rippleElev, 0.0) * 0.05;
+  }
+  float waterline = exp(-pow((dist - 2.42) * 8.0, 2.0)) * 0.03;
+  col += uLight * waterline;
+  float fres = smoothstep(5.0, 30.0, dist);
+  col = mix(col, uSky, fres * 0.22);
+  float alpha = mix(0.46, 0.68, fres);
   fragColor = vec4(col, alpha);
 }`;
 

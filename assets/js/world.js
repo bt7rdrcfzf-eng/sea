@@ -535,6 +535,95 @@
     return g;
   }
 
+  /* seasonal water decorations */
+  function buildLotusLeaf() {
+    const g = Geo();
+    const center = [0, 0.055, 0];
+    const N = 14;
+    const notch = 0.42;
+    const cols = [hexToRgb('#7d9a68'), hexToRgb('#8aa974'), hexToRgb('#6f8b5c')];
+    for (let i = 0; i < N; i++) {
+      const a0 = notch + (i / N) * (TAU - notch * 2);
+      const a1 = notch + ((i + 1) / N) * (TAU - notch * 2);
+      const r0 = 0.94 + 0.08 * Math.sin(i * 1.9 + 0.4);
+      const r1 = 0.94 + 0.08 * Math.sin((i + 1) * 1.9 + 0.4);
+      const p0 = [Math.cos(a0) * r0, 0.012, Math.sin(a0) * r0];
+      const p1 = [Math.cos(a1) * r1, 0.012, Math.sin(a1) * r1];
+      pushTri(g, center, p0, p1, [0, 1, 0], cols[i % 3]);
+    }
+    // a few veins
+    for (let k = 0; k < 7; k++) {
+      const a = notch + TAU / 13 + (k / 7) * (TAU - notch * 2 - TAU / 13);
+      const r = 0.82;
+      addBox(g, Math.cos(a) * r * 0.5, 0.026, Math.sin(a) * r * 0.5, 0.012, 0.004, r, hexToRgb('#5f7a4e'), Math.PI / 2 - a, 0);
+    }
+    return g;
+  }
+
+  function buildMapleLeaf() {
+    const g = Geo();
+    const center = [0, 0.012, 0];
+    const R = 0.46;
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * TAU - Math.PI / 2;
+      const r = i % 2 === 0 ? R * (0.92 + 0.1 * Math.sin(i * 2.3)) : R * 0.34;
+      pts.push([Math.cos(a) * r, 0.01, Math.sin(a) * r]);
+    }
+    const cols = [hexToRgb('#b8793f'), hexToRgb('#a46435'), hexToRgb('#c68b4d')];
+    for (let i = 0; i < 10; i++) {
+      pushTri(g, center, pts[i], pts[(i + 1) % 10], [0, 1, 0], cols[i % 3]);
+    }
+    addBox(g, 0, 0.013, 0.36, 0.018, 0.006, 0.18, hexToRgb('#7f5a34'), 0, 0);
+    return g;
+  }
+
+  function buildIcePatch() {
+    const g = Geo();
+    const center = [0, 0.02, 0];
+    const N = 9;
+    const pts = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * TAU;
+      const r = 0.55 + 0.16 * Math.sin(i * 2.7 + 0.5);
+      pts.push([Math.cos(a) * r, 0.008, Math.sin(a) * r]);
+    }
+    const cols = [[0.82, 0.9, 0.92], [0.9, 0.95, 0.96]];
+    for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 2]);
+    return g;
+  }
+
+  function buildFloatPetal() {
+    const g = Geo();
+    const N = 9;
+    const cols = [[1, 0.84, 0.88], [1, 0.9, 0.93], [0.98, 0.8, 0.86]];
+    const center = [0, 0.008, 0];
+    const pts = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * TAU;
+      const r = 0.19 * (0.82 + 0.18 * Math.sin(a * 3.0 + 0.5));
+      pts.push([Math.cos(a) * r, 0.004, Math.sin(a) * r]);
+    }
+    for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
+    return g;
+  }
+
+  function buildFloatLeaf() {
+    const g = Geo();
+    const N = 10;
+    const cols = [[0.72, 0.5, 0.28], [0.8, 0.56, 0.32], [0.65, 0.44, 0.24]];
+    const center = [0, 0.006, 0];
+    const pts = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * TAU;
+      const r = 0.24 * (0.7 + 0.3 * Math.cos(a - 0.4));
+      pts.push([Math.cos(a) * r, 0.003, Math.sin(a) * r]);
+    }
+    for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
+    addBox(g, 0, 0.004, -0.2, 0.015, 0.004, 0.12, hexToRgb('#6e4a2c'), 0, 0);
+    return g;
+  }
+
   /* one petal, base at origin, pointing +Y, with a soft cup */
   function buildPetalGeo() {
     const g = Geo();
@@ -769,10 +858,45 @@
     const smallFrameMesh = renderer.makeMesh(buildSmallLanternFrame());
     const smallPaperMesh = renderer.makeMesh(buildSmallLanternPaper());
     const smalls = [
-      { xf: -1.0, zf: 0.45, s: 1.15, phase: 0.7, rot: 0.4 },
-      { xf: 0.96, zf: 0.58, s: 1.0, phase: 2.4, rot: 1.2 },
-      { xf: -0.45, zf: 0.82, s: 0.85, phase: 4.1, rot: 2.6 },
+      { xf: -0.95, zf: 0.18, s: 1.3, phase: 0.7, rot: 0.4 },
+      { xf: 0.95, zf: 0.62, s: 0.72, phase: 2.4, rot: 1.2 },
+      { xf: 0.2, zf: 0.6, s: 0.92, phase: 4.1, rot: 2.6 },
     ];
+    const lotusLeafMesh = renderer.makeMesh(buildLotusLeaf());
+    const mapleMesh = renderer.makeMesh(buildMapleLeaf());
+    const iceMesh = renderer.makeMesh(buildIcePatch());
+    const floatPetalMesh = renderer.makeMesh(buildFloatPetal());
+    const floatLeafMesh = renderer.makeMesh(buildFloatLeaf());
+    const decos = {
+      spring: [
+        { t: 'float', x: -3.2, z: 2.0, rot: 0.4, s: 1.1, tint: [1, 0.84, 0.88] },
+        { t: 'float', x: 3.4, z: -1.2, rot: 2.0, s: 1.35, tint: [1, 0.91, 0.94] },
+        { t: 'float', x: -2.2, z: -2.7, rot: 4.2, s: 0.95, tint: [1, 0.78, 0.84] },
+        { t: 'float', x: 2.6, z: 2.4, rot: 1.3, s: 1.2, tint: [1, 0.9, 0.93] },
+        { t: 'float', x: 0.8, z: -3.2, rot: 5.0, s: 1.0, tint: [1, 0.83, 0.87] },
+      ],
+      summer: [
+        { t: 'leaf', x: -3.5, z: 1.4, rot: 0.2, s: 1.15 },
+        { t: 'leaf', x: 3.2, z: 2.1, rot: 1.8, s: 0.95 },
+        { t: 'leaf', x: -2.1, z: -2.8, rot: 3.2, s: 0.85 },
+        { t: 'leaf', x: -3.2, z: -1.2, rot: 4.5, s: 0.75 },
+        { t: 'flower', x: 3.5, z: -0.9, rot: 1.0, s: 1.05 },
+      ],
+      autumn: [
+        { t: 'leaf2', x: -3.2, z: 1.8, rot: 0.3, s: 1.35, tint: [1, 0.78, 0.6] },
+        { t: 'leaf2', x: 3.0, z: -1.0, rot: 2.1, s: 1.2, tint: [1, 0.7, 0.52] },
+        { t: 'leaf2', x: -2.6, z: -2.4, rot: 4.0, s: 1.25, tint: [1, 0.9, 0.74] },
+        { t: 'leaf2', x: 3.6, z: 2.6, rot: 1.2, s: 1.05, tint: [1, 0.78, 0.58] },
+        { t: 'leaf2', x: 1.4, z: 3.4, rot: 5.3, s: 1.15, tint: [1, 0.84, 0.66] },
+      ],
+      winter: [
+        { t: 'ice', x: -3.6, z: 1.2, rot: 0.4, s: 1.25 },
+        { t: 'ice', x: 3.4, z: 2.0, rot: 1.6, s: 0.95 },
+        { t: 'ice', x: -2.4, z: -2.8, rot: 3.0, s: 1.05 },
+        { t: 'ice', x: 2.0, z: 3.2, rot: 4.4, s: 0.8 },
+        { t: 'ice', x: 3.6, z: -1.4, rot: 5.0, s: 0.72 },
+      ],
+    };
 
     // tree (branch tips first)
     const tips = [];
@@ -1170,8 +1294,8 @@
       const { angle, pal, camera, time, dt, bloom, text, motion, floatY, rippleAge, waterTime } = state;
       const night = state.night || 0;
       const wt = waterTime == null ? time : waterTime;
-      const coverAmt = smootherstep(0.02, 0.55, bloom);
-      const lift = coverAmt * 13.0;
+      const coverAmt = smootherstep(0.04, 0.82, bloom);
+      const lift = coverAmt * 13.5;
       const bgTop = mixRgb(pal.bgTop, [0.04, 0.06, 0.1], night);
       const bgMid = mixRgb(pal.bgMid, [0.065, 0.09, 0.14], night);
       const bgBottom = mixRgb(pal.bgBottom, [0.03, 0.045, 0.075], night);
@@ -1202,7 +1326,7 @@
       m4.compose(matA, 0, -0.78, 0, 0, 0, 0, 1, 1, 1);
       m4.multiply(treeModel, groupModel, matA);
       m4.multiply(reflTree, mirror, treeModel);
-      m4.compose(matA, 0, lift, 0, 0, 0, 0, 1, 1, 1);
+      m4.compose(matA, coverAmt * 0.55, lift, -coverAmt * 0.35, coverAmt * 0.24, 0, coverAmt * 0.1, 1, 1, 1);
       m4.multiply(coverModel, groupModel, matA);
       m4.multiply(reflCover, mirror, coverModel);
 
@@ -1239,19 +1363,100 @@
         const sx = spread * S.xf + Math.sin(wt * 0.12 + S.phase) * 0.1;
         const sz = spread * S.zf + Math.cos(wt * 0.1 + S.phase) * 0.08;
         const bob = 0.012 + 0.01 * Math.sin(wt * 0.8 + S.phase);
-        return [sx, sz, bob];
+        const sc = S.s * (1.0 + 0.035 * Math.sin(wt * 0.55 + S.phase));
+        return [sx, sz, bob, sc];
       };
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
-        const [sx, sz, bob] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, S.s, S.s, S.s);
+        const [sx, sz, bob, sc] = smallPos(S);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, sc, sc, sc);
         m4.multiply(matD, mirror, matA);
         renderer.drawMesh(smallFrameMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1 });
         renderer.drawMesh(smallPaperMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1, emissive: 0.03 + night * 0.4 });
         if (night > 0.02) {
-          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, -bob - 0.2 * S.s, sz], 0, 1.0 * S.s, 1.0 * S.s);
+          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, -bob - 0.2 * sc, sz], 0, 1.0 * sc, 1.0 * sc);
           renderer.drawSprite(tex.glow, matD, [1, 0.72, 0.4], 0.13 * night, 'add');
         }
+      }
+
+      // ── seasonal water decorations ───────────────────────────
+      const seasonKeys = ['spring', 'summer', 'autumn', 'winter'];
+      const slot = ((angle / (TAU / 4)) % 4 + 4) % 4;
+      const i0 = Math.floor(slot) % 4;
+      const f = slot - Math.floor(slot);
+      const i1 = (i0 + 1) % 4;
+      const decoSpread = clamp(layout.aspect * 1.8 + 1.7, 2.9, 4.0);
+      const dxs = decoSpread / 4.0;
+      const summerPal = PALETTES[1];
+      const flowerTint = [1, 0.68, 0.76];
+      const wSummer = i0 === 1 ? 1 - f : (i1 === 1 ? f : 0);
+
+      const drawLotusFlower = (d, w, refl) => {
+        const x = d.x * dxs;
+        const z = d.z * dxs;
+        const sc = d.s * (0.9 + 0.12 * dxs);
+        m4.compose(matA, x, 0.02, z, d.rot, 0, 0, sc, sc, sc);
+        if (refl) m4.multiply(matD, mirror, matA);
+        const base = refl ? matD : matA;
+        const op = refl ? w * 0.18 : w * 0.92;
+        const ghost = refl;
+        const wave = refl ? 0.6 : 0;
+        // stem
+        m4.compose(matB, 0, 0, 0, 0, 0, 0, 0.95, 0.62, 0.95);
+        m4.multiply(matC, base, matB);
+        renderer.drawMesh(stemMesh, matC, { tint: [0.32, 0.46, 0.22], tintMix: 1, opacity: op, ghost, wave });
+        // two rings of petals
+        for (let ri = 0; ri < 2; ri++) {
+          const n = ri ? 4 : 5;
+          for (let pi = 0; pi < n; pi++) {
+            const a = (pi / n) * TAU + (ri ? 0.5 : 0);
+            const tilt = ri ? 0.55 : 1.02;
+            m4.compose(matB, 0, 0.62, 0, a, tilt, 0, 0.2, 0.34, 0.2);
+            m4.multiply(matC, base, matB);
+            renderer.drawMesh(petalMesh, matC, {
+              tint: flowerTint, tintMix: 1, opacity: op, ghost, wave,
+              emissive: 0.04,
+            });
+          }
+        }
+        // heart
+        m4.compose(matB, 0, 0.66, 0, 0, 0, 0, 0.12, 0.12, 0.12);
+        m4.multiply(matC, base, matB);
+        renderer.drawMesh(flowerCoreMesh, matC, { opacity: op, ghost, wave, emissive: 0.08 });
+      };
+
+      const drawFlatDecos = (key, w) => {
+        if (w < 0.01) return;
+        const list = decos[key];
+        if (!list) return;
+        for (let di = 0; di < list.length; di++) {
+          const d = list[di];
+          if (d.t === 'flower') continue;
+          const x = d.x * dxs + Math.sin(wt * 0.1 + di) * 0.03;
+          const z = d.z * dxs + Math.cos(wt * 0.08 + di) * 0.025;
+          const sc = d.s * (0.9 + 0.12 * dxs);
+          const y = 0.035;
+          m4.compose(matA, x, y, z, 0, 0, d.rot, sc, sc, sc);
+          let mesh = iceMesh;
+          let tint = [0.8, 0.9, 0.96];
+          let mix = 0.35;
+          let op = w * 0.5;
+          if (d.t === 'float') {
+            mesh = floatPetalMesh; tint = d.tint; mix = 1; op = w * 0.92;
+          } else if (d.t === 'leaf2') {
+            mesh = floatLeafMesh; tint = d.tint; mix = 0.45; op = w * 0.94;
+          } else if (d.t === 'leaf') {
+            mesh = lotusLeafMesh; op = w * 0.94;
+          } else if (d.t === 'maple') {
+            mesh = mapleMesh; tint = d.tint; mix = 0.5; op = w * 0.94;
+          }
+          renderer.drawMesh(mesh, matA, { tint, tintMix: mix, opacity: op });
+        }
+      };
+
+      if (wSummer > 0.01) {
+        const flower = decos.summer.find((x) => x.t === 'flower');
+        if (flower) drawLotusFlower(flower, wSummer, true);
       }
 
       // water surface
@@ -1274,11 +1479,19 @@
       renderer.drawSprite(tex.shadow, contactModel, [0.08, 0.09, 0.08], 0.22, 'normal');
       renderer.setDepth(true, true);
 
+      // seasonal floating decorations, on the water surface
+      drawFlatDecos(seasonKeys[i0], 1 - f);
+      drawFlatDecos(seasonKeys[i1], f);
+      if (wSummer > 0.01) {
+        const flower = decos.summer.find((x) => x.t === 'flower');
+        if (flower) drawLotusFlower(flower, wSummer, false);
+      }
+
       // actual lantern above the water
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
-        const [sx, sz, bob] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, S.s, S.s, S.s);
+        const [sx, sz, bob, sc] = smallPos(S);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, sc, sc, sc);
         renderer.drawMesh(smallFrameMesh, matA);
         renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.05 + night * 0.85 });
       }
@@ -1320,16 +1533,19 @@
           pos[1] + camera.right[1] * 0.035 - camera.up[1] * 0.06,
           pos[2] + camera.right[2] * 0.035 - camera.up[2] * 0.06,
         ], 0, shScale, shScale);
+        // a soft light halo separates the glyph from the pale background
+        m4.billboard(matD, camera.right, camera.up, camera.back, pos, 0, size * 1.14, size * 1.14);
+        renderer.drawSprite(tex.glow, matD, [1, 0.99, 0.95], 0.08 + night * 0.03, 'add');
         renderer.setDepth(false, true);
         renderer.drawSprite(glyph.shadow, shadowModel, [
           0.3, 0.26, 0.22,
         ], (0.035 - night * 0.02) * text.alpha, 'normal');
         renderer.setDepth(true, true);
 
-        const dayMix = mixRgb(pal.accent, pal.petal, 0.35);
-        const midColor = mixRgb(dayMix, [1, 1, 1], 0.16 + 0.14 * night);
-        const top = mixRgb(midColor, [1, 0.99, 0.96], 0.6);
-        const bottom = mixRgb(dayMix, [1, 1, 1], 0.02 + 0.2 * night);
+        const deep = mixRgb(pal.accentDeep, pal.accent, 0.25);
+        const midColor = mixRgb(pal.accent, [1, 1, 1], 0.04 + 0.55 * night);
+        const top = mixRgb(pal.accent, [1, 0.99, 0.96], 0.62);
+        const bottom = mixRgb(deep, [1, 1, 1], 0.02 + 0.45 * night);
         m4.billboard(textModel, camera.right, camera.up, camera.back, pos, 0, size, size);
         renderer.drawText(
           glyph.tex, textModel, top, midColor, bottom,
@@ -1343,8 +1559,8 @@
         renderer.setDepth(false, true);
         for (let si = 0; si < smalls.length; si++) {
           const S = smalls[si];
-          const [sx, sz, bob] = smallPos(S);
-          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, bob + 0.24 * S.s, sz], 0, 1.15 * S.s, 1.15 * S.s);
+          const [sx, sz, bob, sc] = smallPos(S);
+          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, bob + 0.24 * sc, sz], 0, 1.15 * sc, 1.15 * sc);
           renderer.drawSprite(tex.glow, matD, [1, 0.74, 0.42], 0.36 * night, 'add');
         }
         renderer.setDepth(true, true);
