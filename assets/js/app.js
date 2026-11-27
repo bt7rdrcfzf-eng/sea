@@ -105,7 +105,7 @@
     if (narrow) {
       camera.text = {
         x: 0,
-        y: 2 * halfH * 0.28,
+        y: 2 * halfH * 0.3,
         size: halfH * 0.38,
         depth: -6,
       };
@@ -115,7 +115,7 @@
       const x = Math.max(1.8, Math.min(2.4 + size * 0.5 - 0.4, maxX));
       camera.text = {
         x,
-        y: 2 * halfH * 0.22,
+        y: 2 * halfH * 0.24,
         size,
         depth: 9,
       };

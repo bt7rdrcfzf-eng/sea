@@ -538,24 +538,23 @@
   /* seasonal water decorations */
   function buildLotusLeaf() {
     const g = Geo();
-    const center = [0, 0.055, 0];
-    const N = 14;
-    const notch = 0.42;
+    const center = [0, 0.04, 0];
+    const N = 20;
+    const notch = 0.32;
     const cols = [hexToRgb('#7d9a68'), hexToRgb('#8aa974'), hexToRgb('#6f8b5c')];
     for (let i = 0; i < N; i++) {
       const a0 = notch + (i / N) * (TAU - notch * 2);
       const a1 = notch + ((i + 1) / N) * (TAU - notch * 2);
-      const r0 = 0.94 + 0.08 * Math.sin(i * 1.9 + 0.4);
-      const r1 = 0.94 + 0.08 * Math.sin((i + 1) * 1.9 + 0.4);
+      const r0 = 0.95 + 0.05 * Math.sin(i * 2.1 + 0.3);
+      const r1 = 0.95 + 0.05 * Math.sin((i + 1) * 2.1 + 0.3);
       const p0 = [Math.cos(a0) * r0, 0.012, Math.sin(a0) * r0];
       const p1 = [Math.cos(a1) * r1, 0.012, Math.sin(a1) * r1];
       pushTri(g, center, p0, p1, [0, 1, 0], cols[i % 3]);
     }
-    // a few veins
-    for (let k = 0; k < 7; k++) {
-      const a = notch + TAU / 13 + (k / 7) * (TAU - notch * 2 - TAU / 13);
+    for (let k = 0; k < 9; k++) {
+      const a = notch + TAU / 19 + (k / 9) * (TAU - notch * 2 - TAU / 19);
       const r = 0.82;
-      addBox(g, Math.cos(a) * r * 0.5, 0.026, Math.sin(a) * r * 0.5, 0.012, 0.004, r, hexToRgb('#5f7a4e'), Math.PI / 2 - a, 0);
+      addBox(g, Math.cos(a) * r * 0.5, 0.024, Math.sin(a) * r * 0.5, 0.012, 0.004, r, hexToRgb('#5f7a4e'), Math.PI / 2 - a, 0);
     }
     return g;
   }
@@ -581,11 +580,11 @@
   function buildIcePatch() {
     const g = Geo();
     const center = [0, 0.02, 0];
-    const N = 9;
+    const N = 16;
     const pts = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
-      const r = 0.55 + 0.16 * Math.sin(i * 2.7 + 0.5);
+      const r = 0.55 + 0.09 * Math.sin(i * 1.6 + 0.5);
       pts.push([Math.cos(a) * r, 0.008, Math.sin(a) * r]);
     }
     const cols = [[0.82, 0.9, 0.92], [0.9, 0.95, 0.96]];
@@ -621,6 +620,31 @@
     }
     for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
     addBox(g, 0, 0.004, -0.2, 0.015, 0.004, 0.12, hexToRgb('#6e4a2c'), 0, 0);
+    return g;
+  }
+
+  function buildBlossom() {
+    const g = Geo();
+    const cols = [[1, 0.83, 0.88], [1, 0.9, 0.93], [1, 0.78, 0.84]];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * TAU;
+      const cx = Math.cos(a) * 0.26;
+      const cz = Math.sin(a) * 0.26;
+      const pts = [];
+      for (let k = 0; k < 8; k++) {
+        const b = (k / 8) * TAU;
+        const lx = Math.cos(b) * 0.24;
+        const lz = Math.sin(b) * 0.13;
+        pts.push([
+          cx + Math.cos(a) * lx - Math.sin(a) * lz,
+          0.01,
+          cz + Math.sin(a) * lx + Math.cos(a) * lz,
+        ]);
+      }
+      const pc = [cx, 0.012, cz];
+      for (let k = 0; k < 8; k++) pushTri(g, pc, pts[k], pts[(k + 1) % 8], [0, 1, 0], cols[i % 3]);
+    }
+    addCylinder(g, [0, 0.014, 0], [0, 0.024, 0], 0.07, 0.05, 8, [0.95, 0.78, 0.4], [0.9, 0.7, 0.35]);
     return g;
   }
 
@@ -858,43 +882,39 @@
     const smallFrameMesh = renderer.makeMesh(buildSmallLanternFrame());
     const smallPaperMesh = renderer.makeMesh(buildSmallLanternPaper());
     const smalls = [
-      { xf: -0.95, zf: 0.18, s: 1.3, phase: 0.7, rot: 0.4 },
-      { xf: 0.95, zf: 0.62, s: 0.72, phase: 2.4, rot: 1.2 },
-      { xf: 0.2, zf: 0.6, s: 0.92, phase: 4.1, rot: 2.6 },
+      { xf: -1.15, zf: 0.55, s: 1.3, phase: 0.7, rot: 0.4 },
+      { xf: 1.15, zf: 0.45, s: 0.8, phase: 2.4, rot: 1.2 },
+      { xf: 0.9, zf: -0.7, s: 1.0, phase: 4.1, rot: 2.6 },
     ];
     const lotusLeafMesh = renderer.makeMesh(buildLotusLeaf());
     const mapleMesh = renderer.makeMesh(buildMapleLeaf());
     const iceMesh = renderer.makeMesh(buildIcePatch());
     const floatPetalMesh = renderer.makeMesh(buildFloatPetal());
     const floatLeafMesh = renderer.makeMesh(buildFloatLeaf());
+    const blossomMesh = renderer.makeMesh(buildBlossom());
     const decos = {
       spring: [
-        { t: 'float', x: -3.2, z: 2.0, rot: 0.4, s: 1.1, tint: [1, 0.84, 0.88] },
-        { t: 'float', x: 3.4, z: -1.2, rot: 2.0, s: 1.35, tint: [1, 0.91, 0.94] },
-        { t: 'float', x: -2.2, z: -2.7, rot: 4.2, s: 0.95, tint: [1, 0.78, 0.84] },
-        { t: 'float', x: 2.6, z: 2.4, rot: 1.3, s: 1.2, tint: [1, 0.9, 0.93] },
-        { t: 'float', x: 0.8, z: -3.2, rot: 5.0, s: 1.0, tint: [1, 0.83, 0.87] },
+        { t: 'blossom', x: -4.2, z: 1.8, rot: 0.4, s: 1.0, tint: [1, 0.86, 0.9] },
+        { t: 'blossom', x: 4.2, z: 1.2, rot: 2.0, s: 1.2, tint: [1, 0.92, 0.94] },
+        { t: 'blossom', x: -4.0, z: -1.8, rot: 4.2, s: 0.85, tint: [1, 0.8, 0.86] },
+        { t: 'blossom', x: 4.0, z: -1.8, rot: 1.3, s: 1.05, tint: [1, 0.9, 0.92] },
       ],
       summer: [
-        { t: 'leaf', x: -3.5, z: 1.4, rot: 0.2, s: 1.15 },
-        { t: 'leaf', x: 3.2, z: 2.1, rot: 1.8, s: 0.95 },
-        { t: 'leaf', x: -2.1, z: -2.8, rot: 3.2, s: 0.85 },
-        { t: 'leaf', x: -3.2, z: -1.2, rot: 4.5, s: 0.75 },
-        { t: 'flower', x: 3.5, z: -0.9, rot: 1.0, s: 1.05 },
+        { t: 'leaf', x: -4.2, z: 1.0, rot: 0.2, s: 1.35 },
+        { t: 'leaf', x: 4.4, z: 0.2, rot: 1.8, s: 1.15 },
+        { t: 'leaf', x: -4.0, z: -1.8, rot: 3.2, s: 1.0 },
+        { t: 'flower', x: 4.2, z: -0.6, rot: 1.0, s: 1.15 },
       ],
       autumn: [
-        { t: 'leaf2', x: -3.2, z: 1.8, rot: 0.3, s: 1.35, tint: [1, 0.78, 0.6] },
-        { t: 'leaf2', x: 3.0, z: -1.0, rot: 2.1, s: 1.2, tint: [1, 0.7, 0.52] },
-        { t: 'leaf2', x: -2.6, z: -2.4, rot: 4.0, s: 1.25, tint: [1, 0.9, 0.74] },
-        { t: 'leaf2', x: 3.6, z: 2.6, rot: 1.2, s: 1.05, tint: [1, 0.78, 0.58] },
-        { t: 'leaf2', x: 1.4, z: 3.4, rot: 5.3, s: 1.15, tint: [1, 0.84, 0.66] },
+        { t: 'leaf2', x: -4.2, z: 1.8, rot: 0.3, s: 1.35, tint: [1, 0.8, 0.62] },
+        { t: 'leaf2', x: 4.2, z: -1.2, rot: 2.1, s: 1.15, tint: [1, 0.72, 0.54] },
+        { t: 'leaf2', x: -3.8, z: -2.2, rot: 4.0, s: 1.2, tint: [1, 0.9, 0.74] },
+        { t: 'leaf2', x: 0.0, z: -4.0, rot: 1.2, s: 1.1, tint: [1, 0.84, 0.66] },
       ],
       winter: [
-        { t: 'ice', x: -3.6, z: 1.2, rot: 0.4, s: 1.25 },
-        { t: 'ice', x: 3.4, z: 2.0, rot: 1.6, s: 0.95 },
-        { t: 'ice', x: -2.4, z: -2.8, rot: 3.0, s: 1.05 },
-        { t: 'ice', x: 2.0, z: 3.2, rot: 4.4, s: 0.8 },
-        { t: 'ice', x: 3.6, z: -1.4, rot: 5.0, s: 0.72 },
+        { t: 'ice', x: -4.2, z: 1.2, rot: 0.4, s: 1.35 },
+        { t: 'ice', x: 4.4, z: -0.8, rot: 1.6, s: 1.1 },
+        { t: 'ice', x: -2.4, z: -3.0, rot: 3.0, s: 1.2 },
       ],
     };
 
@@ -1358,7 +1378,7 @@
       }
 
       // a few small lanterns on the water, each with a soft reflection
-      const spread = clamp(layout.aspect * 2.1 + 1.8, 3.0, 5.3);
+      const spread = clamp(layout.aspect * 2.2 + 1.9, 2.8, 5.4);
       const smallPos = (S) => {
         const sx = spread * S.xf + Math.sin(wt * 0.12 + S.phase) * 0.1;
         const sz = spread * S.zf + Math.cos(wt * 0.1 + S.phase) * 0.08;
@@ -1441,7 +1461,9 @@
           let tint = [0.8, 0.9, 0.96];
           let mix = 0.35;
           let op = w * 0.5;
-          if (d.t === 'float') {
+          if (d.t === 'blossom') {
+            mesh = blossomMesh; tint = d.tint; mix = 1; op = w * 0.95;
+          } else if (d.t === 'float') {
             mesh = floatPetalMesh; tint = d.tint; mix = 1; op = w * 0.92;
           } else if (d.t === 'leaf2') {
             mesh = floatLeafMesh; tint = d.tint; mix = 0.45; op = w * 0.94;
@@ -1493,7 +1515,7 @@
         const [sx, sz, bob, sc] = smallPos(S);
         m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, sc, sc, sc);
         renderer.drawMesh(smallFrameMesh, matA);
-        renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.05 + night * 0.85 });
+        renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.12 + night * 0.8 });
       }
 
       renderer.drawMesh(raftMesh, groupModel);

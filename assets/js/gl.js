@@ -254,6 +254,14 @@ void main() {
   h += a4 * sin(ph4);
   g += a4 * vec2(cos(ph4) * 2.83, -cos(ph4) * 2.27);
 
+  // fine capillary ripples
+  float pf1 = p.x * 3.9 + p.y * 2.2 + t * 1.05;
+  h += 0.09 * sin(pf1);
+  g += 0.09 * vec2(cos(pf1) * 3.9, cos(pf1) * 2.2);
+  float pf2 = p.x * 2.6 - p.y * 4.1 - t * 1.3;
+  h += 0.065 * sin(pf2);
+  g += 0.065 * vec2(cos(pf2) * 2.6, -cos(pf2) * 4.1);
+
   // slow swell
   float ph5 = p.x * 0.13 + p.y * 0.10 + t * 0.11;
   h += 0.55 * sin(ph5);
@@ -280,7 +288,7 @@ void main() {
     float width = 0.6 + age * 0.30;
     float env = exp(-pow((d - front) / width, 2.0)) * smoothstep(0.0, 0.30, age);
     float fade = exp(-age * 0.32) * (1.0 - smoothstep(3.6, 6.9, age)) * uRippleStrength;
-    float phase = (d - front) * 7.0;
+    float phase = (d - front) * 3.0;
     rippleElev = sin(phase) * env * fade;
     float slope = cos(phase) * 7.0 * env * fade;
     h += rippleElev * 0.04;
@@ -295,8 +303,8 @@ void main() {
   vec3 col = mix(uShallow, uDeep, smoothstep(0.0, 18.0, dist));
   col = mix(col, uSky, smoothstep(14.0, 50.0, dist) * 0.55);
   float shade = clamp(h * 0.10, -0.6, 0.6);
-  col *= 1.0 + shade * 0.75;
-  col += uLight * spec * 0.7;
+  col *= 1.0 + shade * 0.9;
+  col += uLight * spec * 0.8;
   col += uLight * spec2 * 0.16;
   if (age > 0.0 && age < 7.5) {
     col *= 1.0 - rippleElev * 0.20;
