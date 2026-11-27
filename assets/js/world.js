@@ -604,44 +604,66 @@
     return g;
   }
 
-  function buildFloatPetal() {
+  function buildFloatPetal(v = 0) {
     const g = Geo();
-    const center = [0, 0.02, 0];
+    const wf = 0.82 + 0.28 * v;
     const cols = [[1, 0.84, 0.88], [1, 0.9, 0.93], [0.98, 0.8, 0.86]];
     const N = 14;
-    const pts = [];
+    const top = [];
+    const bot = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
-      const x = Math.sin(a) * 0.12 * (0.9 + 0.1 * Math.cos(2 * a));
-      const z = -0.05 + Math.cos(a) * 0.21;
-      pts.push([x, 0.006, z]);
+      const x = Math.sin(a) * 0.12 * wf * (0.9 + 0.1 * Math.cos(2 * a));
+      const z = -0.05 + Math.cos(a) * (0.19 + 0.03 * v);
+      top.push([x, 0.01, z]);
+      bot.push([x, -0.006, z]);
     }
-    for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
+    const cTop = [0, 0.028, 0];
+    const cBot = [0, -0.004, 0];
+    for (let i = 0; i < N; i++) {
+      const j = (i + 1) % N;
+      pushTri(g, cTop, top[i], top[j], [0, 1, 0], cols[i % 3]);
+      pushTri(g, cBot, bot[j], bot[i], [0, -1, 0], [0.7, 0.54, 0.6]);
+      pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.86, 0.68, 0.74]);
+      pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.86, 0.68, 0.74]);
+    }
     return g;
   }
 
-  function buildMapleLeaf() {
+  function buildMapleLeaf(v = 0) {
     const g = Geo();
-    const center = [0, 0.02, 0];
+    const center = [0, 0.028, 0];
+    const bottom = [0, -0.008, 0];
     const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
     const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
-    const pts = [];
+    const top = [];
+    const bot = [];
     for (let li = 0; li < 5; li++) {
       const a = order[li];
       const aPrev = order[(li + 4) % 5];
       const aNext = order[(li + 1) % 5];
       const aNotchL = (aPrev + a) / 2;
       const aNotchR = (a + aNext) / 2;
-      pts.push([Math.cos(aNotchL) * 0.24, 0.004, Math.sin(aNotchL) * 0.24]);
-      pts.push([Math.cos(a - 0.16) * 0.42, 0.007, Math.sin(a - 0.16) * 0.42]);
-      pts.push([Math.cos(a) * 0.55, 0.01, Math.sin(a) * 0.55]);
-      pts.push([Math.cos(a + 0.16) * 0.42, 0.007, Math.sin(a + 0.16) * 0.42]);
+      const notch = 0.23 + 0.035 * v;
+      const shoulder = 0.4 + 0.04 * v;
+      const tip = 0.52 + 0.05 * v;
+      top.push([Math.cos(aNotchL) * notch, 0.006, Math.sin(aNotchL) * notch]);
+      top.push([Math.cos(a - 0.16) * shoulder, 0.009, Math.sin(a - 0.16) * shoulder]);
+      top.push([Math.cos(a) * tip, 0.013, Math.sin(a) * tip]);
+      top.push([Math.cos(a + 0.16) * shoulder, 0.009, Math.sin(a + 0.16) * shoulder]);
     }
-    for (let i = 0; i < pts.length; i++) pushTri(g, center, pts[i], pts[(i + 1) % pts.length], [0, 1, 0], cols[i % 3]);
+    for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.012, top[i][2]]);
+    for (let i = 0; i < top.length; i++) {
+      const j = (i + 1) % top.length;
+      pushTri(g, center, top[i], top[j], [0, 1, 0], cols[i % 3]);
+      pushTri(g, bottom, bot[j], bot[i], [0, -1, 0], [0.48, 0.3, 0.17]);
+      pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.58, 0.36, 0.2]);
+      pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.58, 0.36, 0.2]);
+    }
     for (let k = 0; k < 5; k++) {
       const a = order[k];
-      const r = 0.42;
-      addBox(g, Math.cos(a) * r * 0.5, 0.012, Math.sin(a) * r * 0.5, 0.012, 0.005, r, hexToRgb('#7a4a28'), Math.PI / 2 - a, 0);
+      pushTri(g, center, [Math.cos(a - 0.13) * 0.36, 0.018, Math.sin(a - 0.13) * 0.36], [Math.cos(a) * 0.46, 0.018, Math.sin(a) * 0.46], [0, 1, 0], [0.52, 0.32, 0.17]);
+      pushTri(g, center, [Math.cos(a) * 0.46, 0.018, Math.sin(a) * 0.46], [Math.cos(a + 0.13) * 0.36, 0.018, Math.sin(a + 0.13) * 0.36], [0, 1, 0], [0.52, 0.32, 0.17]);
     }
     addBox(g, 0, 0.006, -0.3, 0.018, 0.008, 0.2, hexToRgb('#6e4a2c'), 0, 0);
     return g;
@@ -927,36 +949,67 @@
       { xf: 0.0, zf: 1.2, s: 1.0, phase: 4.1, rot: 2.6 },
     ];
     const lotusLeafMesh = renderer.makeMesh(buildLotusLeaf());
-    const mapleMesh = renderer.makeMesh(buildMapleLeaf());
+    const mapleMeshes = [renderer.makeMesh(buildMapleLeaf(0)), renderer.makeMesh(buildMapleLeaf(1))];
     const iceMesh = renderer.makeMesh(buildIcePatch());
-    const floatPetalMesh = renderer.makeMesh(buildFloatPetal());
+    const floatPetalMeshes = [renderer.makeMesh(buildFloatPetal(0)), renderer.makeMesh(buildFloatPetal(1))];
     const floatLeafMesh = renderer.makeMesh(buildFloatLeaf());
     const blossomMesh = renderer.makeMesh(buildBlossom());
+    const fallers = [];
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * TAU + 0.3;
+      const r = 4.2 + (i % 3) * 0.5;
+      fallers.push({
+        kind: 0,
+        x: Math.cos(a) * r,
+        z: Math.sin(a) * r,
+        phase: i * 0.157,
+        speed: 0.05 + 0.01 * (i % 3),
+        size: 0.48 + 0.09 * (i % 3),
+        rot: i * 0.9,
+        tint: [[1, 0.86, 0.9], [1, 0.92, 0.94], [1, 0.8, 0.86]][i % 3],
+        v: i % 2,
+      });
+    }
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * TAU + 0.8;
+      const r = 4.2 + (i % 3) * 0.5;
+      fallers.push({
+        kind: 1,
+        x: Math.cos(a) * r,
+        z: Math.sin(a) * r,
+        phase: i * 0.173,
+        speed: 0.045 + 0.01 * (i % 3),
+        size: 0.52 + 0.09 * (i % 3),
+        rot: i * 1.1,
+        tint: [[1, 0.8, 0.62], [1, 0.72, 0.54], [1, 0.9, 0.74]][i % 3],
+        v: i % 2,
+      });
+    }
     const decos = {
       spring: [
-        { t: 'float', x: -4.2, z: 1.8, rot: 0.4, s: 0.8, tint: [1, 0.86, 0.9] },
-        { t: 'float', x: 4.2, z: 1.2, rot: 2.0, s: 0.9, tint: [1, 0.92, 0.94] },
-        { t: 'float', x: -4.0, z: -1.8, rot: 4.2, s: 0.7, tint: [1, 0.8, 0.86] },
-        { t: 'float', x: 4.0, z: -1.8, rot: 1.3, s: 0.85, tint: [1, 0.9, 0.92] },
-        { t: 'float', x: -1.4, z: 3.4, rot: 5.1, s: 0.75, tint: [1, 0.84, 0.88] },
-        { t: 'float', x: 1.6, z: 3.2, rot: 3.3, s: 0.8, tint: [1, 0.88, 0.9] },
+        { t: 'float', x: -4.8, z: 0.0, rot: 0.4, s: 0.8, tint: [1, 0.86, 0.9] },
+        { t: 'float', x: 4.8, z: 0.0, rot: 2.0, s: 0.9, tint: [1, 0.92, 0.94] },
+        { t: 'float', x: -4.4, z: -2.4, rot: 4.2, s: 0.7, tint: [1, 0.8, 0.86] },
+        { t: 'float', x: 4.4, z: -2.4, rot: 1.3, s: 0.85, tint: [1, 0.9, 0.92] },
+        { t: 'float', x: -1.2, z: 4.2, rot: 5.1, s: 0.75, tint: [1, 0.84, 0.88] },
+        { t: 'float', x: 1.4, z: 4.2, rot: 3.3, s: 0.8, tint: [1, 0.88, 0.9] },
       ],
       summer: [
-        { t: 'leaf', x: -4.2, z: 1.8, rot: 0.2, s: 1.3 },
-        { t: 'leaf', x: 4.2, z: 1.2, rot: 1.8, s: 1.15 },
-        { t: 'leaf', x: -4.0, z: -1.8, rot: 3.2, s: 1.0 },
-        { t: 'flower', x: 4.0, z: -1.8, rot: 1.0, s: 1.25 },
+        { t: 'leaf', x: -4.8, z: 0.0, rot: 0.2, s: 1.3 },
+        { t: 'leaf', x: 4.8, z: 0.0, rot: 1.8, s: 1.15 },
+        { t: 'leaf', x: -4.4, z: -2.4, rot: 3.2, s: 1.0 },
+        { t: 'flower', x: 4.4, z: -2.4, rot: 1.0, s: 1.25 },
       ],
       autumn: [
-        { t: 'maple', x: -4.2, z: 1.8, rot: 0.3, s: 1.15, tint: [1, 0.8, 0.62] },
-        { t: 'maple', x: 4.2, z: 1.2, rot: 2.1, s: 1.0, tint: [1, 0.72, 0.54] },
-        { t: 'maple', x: -4.0, z: -1.8, rot: 4.0, s: 1.1, tint: [1, 0.9, 0.74] },
-        { t: 'maple', x: 4.0, z: -1.8, rot: 1.2, s: 0.95, tint: [1, 0.84, 0.66] },
+        { t: 'maple', x: -4.8, z: 0.0, rot: 0.3, s: 1.15, tint: [1, 0.8, 0.62] },
+        { t: 'maple', x: 4.8, z: 0.0, rot: 2.1, s: 1.0, tint: [1, 0.72, 0.54] },
+        { t: 'maple', x: -4.4, z: -2.4, rot: 4.0, s: 1.1, tint: [1, 0.9, 0.74] },
+        { t: 'maple', x: 4.4, z: -2.4, rot: 1.2, s: 0.95, tint: [1, 0.84, 0.66] },
       ],
       winter: [
-        { t: 'ice', x: -4.2, z: 1.8, rot: 0.4, s: 1.3 },
-        { t: 'ice', x: 4.2, z: 1.2, rot: 1.6, s: 1.1 },
-        { t: 'ice', x: -4.0, z: -1.8, rot: 3.0, s: 1.2 },
+        { t: 'ice', x: -4.8, z: 0.0, rot: 0.4, s: 1.3 },
+        { t: 'ice', x: 4.8, z: 0.0, rot: 1.6, s: 1.1 },
+        { t: 'ice', x: -4.4, z: -2.4, rot: 3.0, s: 1.2 },
       ],
     };
 
@@ -1453,6 +1506,8 @@
       const summerPal = PALETTES[1];
       const flowerTint = [1, 0.68, 0.76];
       const wSummer = i0 === 1 ? 1 - f : (i1 === 1 ? f : 0);
+      const wSpring = i0 === 0 ? 1 - f : (i1 === 0 ? f : 0);
+      const wAutumn = i0 === 2 ? 1 - f : (i1 === 2 ? f : 0);
 
       const drawLotusFlower = (d, w, refl) => {
         const x = d.x * dxs;
@@ -1522,13 +1577,13 @@
           if (d.t === 'blossom') {
             mesh = blossomMesh; tint = d.tint; mix = 1; op = w * 0.95 * ease;
           } else if (d.t === 'float') {
-            mesh = floatPetalMesh; tint = d.tint; mix = 1; op = w * 0.92 * ease;
+            mesh = floatPetalMeshes[di % 2]; tint = d.tint; mix = 1; op = w * 0.92 * ease;
           } else if (d.t === 'leaf2') {
             mesh = floatLeafMesh; tint = d.tint; mix = 0.45; op = w * 0.94 * ease;
           } else if (d.t === 'leaf') {
             mesh = lotusLeafMesh; op = w * 0.94 * ease;
           } else if (d.t === 'maple') {
-            mesh = mapleMesh; tint = d.tint; mix = 0.5; op = w * 0.94 * ease;
+            mesh = mapleMeshes[di % 2]; tint = d.tint; mix = 0.5; op = w * 0.94 * ease;
           }
           renderer.drawMesh(mesh, matA, { tint, tintMix: mix, opacity: op });
         }
@@ -1566,6 +1621,25 @@
         const flower = decos.summer.find((x) => x.t === 'flower');
         if (flower) drawLotusFlower(flower, wSummer, false);
       }
+
+      // falling petals (spring) / maple leaves (autumn)
+      const drawFallers = (kind, weight) => {
+        if (weight < 0.02) return;
+        for (let fi = 0; fi < fallers.length; fi++) {
+          const f = fallers[fi];
+          if (f.kind !== kind) continue;
+          const cyc = (wt * f.speed + f.phase) % 1;
+          const y = 8.2 * (1 - cyc) + 0.2;
+          const x = f.x + Math.sin(wt * 0.45 + f.phase * 6.28) * 0.45;
+          const z = f.z + Math.cos(wt * 0.4 + f.phase * 6.28) * 0.4;
+          m4.compose(matA, x, y, z, f.rot + wt * 0.6, Math.sin(wt * 0.8 + f.phase * 6.28) * 0.9, Math.cos(wt * 0.7 + f.phase * 6.28) * 0.7, f.size, f.size, f.size);
+          renderer.drawMesh(kind === 0 ? floatPetalMeshes[f.v] : mapleMeshes[f.v], matA, {
+            tint: f.tint, tintMix: kind === 0 ? 1 : 0.55, opacity: weight * 0.92,
+          });
+        }
+      };
+      drawFallers(0, wSpring);
+      drawFallers(1, wAutumn);
 
       // actual lantern above the water
       for (let si = 0; si < smalls.length; si++) {
