@@ -1,4 +1,4 @@
-/* 季忆 — 场景的几何、材质与季节状态 */
+﻿/* 季忆 — 场景的几何、材质与季节状态 */
 (function () {
   'use strict';
   const S4 = window.S4;
@@ -595,15 +595,15 @@
     return g;
   }
 
-  function buildIcePatch() {
+  function buildIcePatch(v = 0) {
     const g = Geo();
     const center = [0, 0.018, 0];
     const bottom = [0, 0.002, 0];
-    const N = 16;
+    const N = 10 + v * 3;
     const pts = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
-      const r = 0.55 + 0.09 * Math.sin(i * 1.6 + 0.5);
+      const r = (0.46 + 0.08 * v) + 0.12 * Math.sin(i * (1.2 + v * 0.7) + 0.5 + v * 1.7);
       pts.push([Math.cos(a) * r, 0.012, Math.sin(a) * r]);
     }
     const cols = [[0.82, 0.9, 0.92], [0.9, 0.95, 0.96]];
@@ -711,11 +711,6 @@
       pushTri(g, bottom, bot[j], bot[i], [0, -1, 0], [0.48, 0.3, 0.17]);
       pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.58, 0.36, 0.2]);
       pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.58, 0.36, 0.2]);
-    }
-    for (let k = 0; k < 5; k++) {
-      const a = order[k];
-      pushTri(g, center, [Math.cos(a - 0.13) * 0.36, 0.018, Math.sin(a - 0.13) * 0.36], [Math.cos(a) * 0.46, 0.018, Math.sin(a) * 0.46], [0, 1, 0], [0.52, 0.32, 0.17]);
-      pushTri(g, center, [Math.cos(a) * 0.46, 0.018, Math.sin(a) * 0.46], [Math.cos(a + 0.13) * 0.36, 0.018, Math.sin(a + 0.13) * 0.36], [0, 1, 0], [0.52, 0.32, 0.17]);
     }
     addBox(g, 0, 0.006, -0.3, 0.018, 0.008, 0.2, hexToRgb('#6e4a2c'), 0, 0);
     return g;
@@ -1002,7 +997,7 @@
     ];
     const lotusLeafMesh = renderer.makeMesh(buildLotusLeaf());
     const mapleMeshes = [renderer.makeMesh(buildMapleLeaf(0)), renderer.makeMesh(buildMapleLeaf(1))];
-    const iceMesh = renderer.makeMesh(buildIcePatch());
+    const iceMeshes = [renderer.makeMesh(buildIcePatch(0)), renderer.makeMesh(buildIcePatch(1)), renderer.makeMesh(buildIcePatch(2))];
     const floatPetalMeshes = [renderer.makeMesh(buildFloatPetal(0)), renderer.makeMesh(buildFloatPetal(1))];
     const floatLeafMesh = renderer.makeMesh(buildFloatLeaf());
     const blossomMesh = renderer.makeMesh(buildBlossom());
@@ -1618,14 +1613,11 @@
           const pitch = 0.035 * Math.sin(wt * 0.55 + di * 1.3);
           const roll = 0.045 * Math.cos(wt * 0.43 + di * 1.1);
           m4.compose(matA, x, y + bob, z, d.rot + sway, pitch, roll, sc, sc, sc);
-          renderer.setDepth(false, true);
-          m4.billboard(matD, camera.right, camera.up, camera.back, [x, 0.006, z], 0, sc * 1.5, sc * 1.5);
-          renderer.drawSprite(tex.shadow, matD, [0.1, 0.1, 0.08], 0.085 * w, 'normal');
-          renderer.setDepth(true, true);
-          let mesh = iceMesh;
+
+          let mesh = iceMeshes[di % 3];
           let tint = [0.8, 0.9, 0.96];
           let mix = 0.35;
-          let op = w * 0.5 * ease;
+          let op = w * 0.34 * ease;
           if (d.t === 'blossom') {
             mesh = blossomMesh; tint = d.tint; mix = 1; op = w * 0.95 * ease;
           } else if (d.t === 'float') {
@@ -1637,6 +1629,10 @@
           } else if (d.t === 'maple') {
             mesh = mapleMeshes[di % 2]; tint = d.tint; mix = 0.5; op = w * 0.94 * ease;
           }
+          renderer.setDepth(false, true);
+          m4.compose(matD, x, 0.006, z, d.rot + sway, pitch, roll, sc * 0.98, sc * 0.98, sc * 0.98);
+          renderer.drawMesh(mesh, matD, { tint: [0.14, 0.11, 0.1], tintMix: 1, opacity: 0.16 * w });
+          renderer.setDepth(true, true);
           renderer.drawMesh(mesh, matA, { tint, tintMix: mix, opacity: op });
         }
       };
@@ -1831,5 +1827,8 @@
   S4.createWorld = createWorld;
   S4.PALETTES = PALETTES;
 })();
+
+
+
 
 

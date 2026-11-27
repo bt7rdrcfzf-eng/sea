@@ -710,7 +710,7 @@ void main() {
       gl.uniform2fv(water.u('uRippleCenter'), colors.rippleCenter);
       gl.uniform1f(water.u('uRippleAge'), colors.rippleAge);
       gl.uniform1f(water.u('uRippleStrength'), colors.rippleStrength);
-      gl.uniform4fv(water.u('uLandRipples'), colors.landRipples || new Float32Array(12));
+      gl.uniform4fv(water.u('uLandRipples[0]'), colors.landRipples || new Float32Array(12));
       gl.bindVertexArray(quadVao);
       setBlend('normal');
       gl.enable(gl.DEPTH_TEST);
