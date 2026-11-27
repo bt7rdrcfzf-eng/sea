@@ -123,6 +123,24 @@
     for (let i = 0; i < 3; i++) g.col.push(col[0], col[1], col[2]);
   }
 
+  function pushTriS(g, a, b, c, col) {
+    const ux = b[0] - a[0];
+    const uy = b[1] - a[1];
+    const uz = b[2] - a[2];
+    const vx = c[0] - a[0];
+    const vy = c[1] - a[1];
+    const vz = c[2] - a[2];
+    let nx = uy * vz - uz * vy;
+    let ny = uz * vx - ux * vz;
+    let nz = ux * vy - uy * vx;
+    const l = Math.hypot(nx, ny, nz) || 1;
+    nx /= l;
+    ny /= l;
+    nz /= l;
+    if (ny < 0) { nx = -nx; ny = -ny; nz = -nz; }
+    pushTri(g, a, b, c, [nx, ny, nz], col);
+  }
+
   function rotY(p, a) {
     const c = Math.cos(a), s = Math.sin(a);
     return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c];
@@ -620,8 +638,8 @@
       for (let iv = 0; iv <= NV; iv++) {
         const u = (iv / NV) * 2 - 1;
         const x = u * w;
-        const cup = 0.055 * u * u * (1.0 - 0.35 * t);
-        const curl = -0.07 * t * t + 0.012 * Math.sin(t * Math.PI);
+        const cup = 0.028 * u * u * (1.0 - 0.35 * t);
+        const curl = -0.035 * t * t + 0.012 * Math.sin(t * Math.PI);
         const y = 0.014 + cup + curl;
         top.push([x, y, z]);
         bot.push([x, y - 0.004, z]);
@@ -634,8 +652,8 @@
         const b = a + 1;
         const c = a + (NV + 1);
         const d = c + 1;
-        pushTri(g, top[a], top[c], top[b], [0, 1, 0], cols[(iu + iv) % 3]);
-        pushTri(g, top[b], top[c], top[d], [0, 1, 0], cols[(iu + iv + 1) % 3]);
+        pushTriS(g, top[a], top[c], top[b], cols[(iu + iv) % 3]);
+        pushTriS(g, top[b], top[c], top[d], cols[(iu + iv + 1) % 3]);
         pushTri(g, bot[a], bot[b], bot[c], [0, -1, 0], [0.7, 0.54, 0.6]);
         pushTri(g, bot[b], bot[d], bot[c], [0, -1, 0], [0.7, 0.54, 0.6]);
       }
@@ -666,7 +684,7 @@
 
   function buildMapleLeaf(v = 0) {
     const g = Geo();
-    const center = [0, 0.05, 0];
+    const center = [0, 0.035, 0];
     const bottom = [0, 0.044, 0];
     const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
     const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
@@ -689,7 +707,7 @@
     for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.006, top[i][2]]);
     for (let i = 0; i < top.length; i++) {
       const j = (i + 1) % top.length;
-      pushTri(g, center, top[i], top[j], [0, 1, 0], cols[i % 3]);
+      pushTriS(g, center, top[i], top[j], cols[i % 3]);
       pushTri(g, bottom, bot[j], bot[i], [0, -1, 0], [0.48, 0.3, 0.17]);
       pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.58, 0.36, 0.2]);
       pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.58, 0.36, 0.2]);
@@ -1700,7 +1718,8 @@
           const roll = Math.cos(wt * 1.25 + f.phase * 6.28) * 0.8;
           m4.compose(matA, x, y, z, f.rot + wt * 0.45, flap, roll, f.size, f.size, f.size);
           renderer.drawMesh(kind === 0 ? floatPetalMeshes[f.v] : mapleMeshes[f.v], matA, {
-            tint: f.tint, tintMix: kind === 0 ? 1 : 0.55, opacity: weight * 0.92,
+            tint: f.tint, tintMix: kind === 0 ? 1 : 0.55,
+            opacity: weight * 0.92 * Math.min(1, cyc / 0.08) * Math.min(1, (1 - cyc) / 0.08),
           });
         }
       };

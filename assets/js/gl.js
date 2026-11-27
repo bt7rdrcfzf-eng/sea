@@ -305,7 +305,7 @@ void main() {
       float lw = 0.16 + lr.z * 0.12;
       float lenv = exp(-pow((ld - lf) / lw, 2.0)) * (1.0 - smoothstep(1.8, 2.2, lr.z));
       float lph = (ld - lf) * 6.5;
-      rippleElev += sin(lph) * lenv * 0.55 * lr.w;
+      rippleElev += sin(lph) * lenv * 0.85 * lr.w;
     }
   }
 
