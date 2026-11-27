@@ -579,16 +579,28 @@
 
   function buildIcePatch() {
     const g = Geo();
-    const center = [0, 0.02, 0];
+    const center = [0, 0.018, 0];
+    const bottom = [0, 0.002, 0];
     const N = 16;
     const pts = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
       const r = 0.55 + 0.09 * Math.sin(i * 1.6 + 0.5);
-      pts.push([Math.cos(a) * r, 0.008, Math.sin(a) * r]);
+      pts.push([Math.cos(a) * r, 0.012, Math.sin(a) * r]);
     }
     const cols = [[0.82, 0.9, 0.92], [0.9, 0.95, 0.96]];
     for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 2]);
+    // thin slab sides and underside
+    for (let i = 0; i < N; i++) {
+      const j = (i + 1) % N;
+      const ti = pts[i];
+      const tj = pts[j];
+      const bi = [ti[0], 0.002, ti[2]];
+      const bj = [tj[0], 0.002, tj[2]];
+      pushTri(g, ti, tj, bj, [0, 0.4, 1], [0.72, 0.84, 0.9]);
+      pushTri(g, ti, bj, bi, [0, 0.4, 1], [0.72, 0.84, 0.9]);
+      pushTri(g, bottom, bi, bj, [0, -1, 0], [0.78, 0.88, 0.92]);
+    }
     return g;
   }
 
@@ -611,15 +623,15 @@
     const g = Geo();
     const N = 10;
     const cols = [[0.72, 0.5, 0.28], [0.8, 0.56, 0.32], [0.65, 0.44, 0.24]];
-    const center = [0, 0.006, 0];
+    const center = [0, 0.024, 0];
     const pts = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
       const r = 0.24 * (0.7 + 0.3 * Math.cos(a - 0.4));
-      pts.push([Math.cos(a) * r, 0.003, Math.sin(a) * r]);
+      pts.push([Math.cos(a) * r, 0.004, Math.sin(a) * r]);
     }
     for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
-    addBox(g, 0, 0.004, -0.2, 0.015, 0.004, 0.12, hexToRgb('#6e4a2c'), 0, 0);
+    addBox(g, 0, 0.005, -0.2, 0.015, 0.006, 0.12, hexToRgb('#6e4a2c'), 0, 0);
     return g;
   }
 
@@ -637,14 +649,14 @@
         const lz = Math.sin(b) * 0.13;
         pts.push([
           cx + Math.cos(a) * lx - Math.sin(a) * lz,
-          0.01,
+          0.007,
           cz + Math.sin(a) * lx + Math.cos(a) * lz,
         ]);
       }
-      const pc = [cx, 0.012, cz];
+      const pc = [cx, 0.032, cz];
       for (let k = 0; k < 8; k++) pushTri(g, pc, pts[k], pts[(k + 1) % 8], [0, 1, 0], cols[i % 3]);
     }
-    addCylinder(g, [0, 0.014, 0], [0, 0.024, 0], 0.07, 0.05, 8, [0.95, 0.78, 0.4], [0.9, 0.7, 0.35]);
+    addCylinder(g, [0, 0.02, 0], [0, 0.036, 0], 0.07, 0.05, 8, [0.95, 0.78, 0.4], [0.9, 0.7, 0.35]);
     return g;
   }
 
@@ -1389,7 +1401,7 @@
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
         const [sx, sz, bob, sc] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, sc, sc, sc);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.02 * Math.sin(wt * 0.6 + S.phase), 0.02 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
         m4.multiply(matD, mirror, matA);
         renderer.drawMesh(smallFrameMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1 });
         renderer.drawMesh(smallPaperMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1, emissive: 0.03 + night * 0.4 });
@@ -1415,7 +1427,11 @@
         const x = d.x * dxs;
         const z = d.z * dxs;
         const sc = d.s * (0.9 + 0.12 * dxs);
-        m4.compose(matA, x, 0.02, z, d.rot, 0, 0, sc, sc, sc);
+        const bob = 0.012 * Math.sin(wt * 0.8 + d.x);
+        const sway = 0.035 * Math.sin(wt * 0.5 + d.z);
+        const tiltX = 0.012 * Math.sin(wt * 0.4 + d.x);
+        const tiltZ = 0.015 * Math.cos(wt * 0.35 + d.z);
+        m4.compose(matA, x, 0.02 + bob, z, d.rot + sway, tiltX, tiltZ, sc, sc, sc);
         if (refl) m4.multiply(matD, mirror, matA);
         const base = refl ? matD : matA;
         const op = refl ? w * 0.18 : w * 0.92;
@@ -1452,11 +1468,19 @@
         for (let di = 0; di < list.length; di++) {
           const d = list[di];
           if (d.t === 'flower') continue;
-          const x = d.x * dxs + Math.sin(wt * 0.1 + di) * 0.03;
-          const z = d.z * dxs + Math.cos(wt * 0.08 + di) * 0.025;
+          const x = d.x * dxs + Math.sin(wt * 0.1 + di) * 0.05;
+          const z = d.z * dxs + Math.cos(wt * 0.08 + di) * 0.04;
           const sc = d.s * (0.9 + 0.12 * dxs);
           const y = 0.035;
-          m4.compose(matA, x, y, z, 0, 0, d.rot, sc, sc, sc);
+          const bob = 0.01 * Math.sin(wt * 0.9 + di * 1.7);
+          const sway = 0.06 * Math.sin(wt * 0.32 + di * 1.9);
+          const pitch = 0.018 * Math.sin(wt * 0.55 + di * 1.3);
+          const roll = 0.022 * Math.cos(wt * 0.43 + di * 1.1);
+          m4.compose(matA, x, y + bob, z, d.rot + sway, pitch, roll, sc, sc, sc);
+          renderer.setDepth(false, true);
+          m4.billboard(matD, camera.right, camera.up, camera.back, [x, 0.006, z], 0, sc * 1.5, sc * 1.5);
+          renderer.drawSprite(tex.shadow, matD, [0.1, 0.1, 0.08], 0.085 * w, 'normal');
+          renderer.setDepth(true, true);
           let mesh = iceMesh;
           let tint = [0.8, 0.9, 0.96];
           let mix = 0.35;
@@ -1513,7 +1537,7 @@
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
         const [sx, sz, bob, sc] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, sc, sc, sc);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.02 * Math.sin(wt * 0.6 + S.phase), 0.02 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
         renderer.drawMesh(smallFrameMesh, matA);
         renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.12 + night * 0.8 });
       }
