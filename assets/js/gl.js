@@ -231,7 +231,7 @@ void main() {
   col = mix(col, uSky, smoothstep(12.0, 48.0, dist) * 0.55);
 
   float age = uRippleAge;
-  if (age > 0.0 && age < 6.5) {
+  if (age > 0.0 && age < 7.5) {
     float dCenter = length(p - uRippleCenter);
     // the wave starts at the raft edge, then decelerates and diffuses
     float d = max(0.0, dCenter - 2.3);
@@ -239,7 +239,7 @@ void main() {
     float width = 0.8 + age * 0.45;
     float ring = exp(-pow((d - front) / width, 2.0)) * smoothstep(0.0, 0.35, age);
     float ring2 = exp(-pow((d - front * 0.58) / (width * 0.7), 2.0)) * smoothstep(0.1, 0.5, age) * 0.45;
-    float fade = exp(-age * 0.45) * (1.0 - smoothstep(4.5, 6.3, age)) * (1.0 - smoothstep(0.0, 22.0, dCenter));
+    float fade = exp(-age * 0.32) * (1.0 - smoothstep(3.6, 6.9, age)) * (1.0 - smoothstep(0.0, 22.0, dCenter));
     col += uLight * (ring + ring2) * fade * 0.44 * uRippleStrength;
     col *= 1.0 - 0.08 * exp(-dCenter * dCenter * 0.35) * exp(-age * 1.4) * uRippleStrength;
   }

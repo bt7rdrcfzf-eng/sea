@@ -311,12 +311,17 @@
     }
   }
 
-  function showHold() {
+  function showHold(kind) {
     el.hold.classList.add('is-on');
+    el.hold.classList.toggle('is-bloom', kind === 'bloom');
+    if (el.ripple) {
+      el.ripple.setAttribute('aria-label', kind === 'bloom' ? '收下这朵花' : '确认并进入这一季');
+    }
   }
 
   function hideHold() {
     el.hold.classList.remove('is-on');
+    el.hold.classList.remove('is-bloom');
   }
 
   function openGift() {
@@ -327,7 +332,7 @@
     el.giftTitle.textContent = unlocked ? '给你的小礼物' : '一份还没拆开的礼物';
     el.giftText.textContent = unlocked
       ? '把这一年压成一枚书签，夹进你正在读的那本书里。翻到第三十二页，那里空着一行。'
-      : '走完春、夏、秋、冬，再回来拆开它。';
+      : '等树开成一朵花，再回来拆开它。';
     requestAnimationFrame(() => {
       const close = el.giftLayer.querySelector('.gift-close');
       if (close) close.focus({ preventScroll: true });
@@ -371,6 +376,7 @@
       state.textKey = '';
       updateBloomCard();
       showHold('bloom');
+      if (!state.giftUnlocked) unlockGift();
       return;
     }
 
@@ -379,7 +385,6 @@
     state.textKey = SEASONS[season].key;
     updateSeasonCard(season);
     showHold('season');
-    if (state.visited.every(Boolean) && !state.giftUnlocked) unlockGift();
   }
 
   function endHold() {
@@ -526,24 +531,25 @@
     }
     state.animTime += dt * state.motion;
 
-    state.textAlpha = damp(state.textAlpha, state.hold.active && state.hold.kind !== 'bloom' ? 1 : 0, 5.5, dt);
+    state.textAlpha = damp(state.textAlpha, state.hold.active && state.hold.kind !== 'bloom' ? 1 : 0, 3.6, dt);
     state.textScale = damp(state.textScale, state.hold.active ? 1 : 0.94, 6.5, dt);
-    state.bloom = damp(state.bloom, state.bloomTarget, state.bloomTarget > state.bloom ? 2.0 : 3.2, dt);
+    state.bloom = damp(state.bloom, state.bloomTarget, state.bloomTarget > state.bloom ? 1.2 : 2.4, dt);
     state.nightAmt = damp(state.nightAmt, state.nightOn ? 1 : 0, 2.15, dt);
 
-    // float / seasonal dip: pressing the lantern onto the water, then ripples
+    // float / seasonal dip: the raft just kisses the water, then ripples
     const dipAge = state.time - state.dipStart;
     let dip = 0;
-    let rippleAge = -1;
     if (dipAge >= 0 && dipAge < 2.0) {
       const p = clamp(dipAge / 1.6, 0, 1);
       const settle = Math.sin(Math.PI * p) * Math.sin(Math.PI * p);
-      dip = -0.3 * settle + 0.02 * Math.sin(2 * Math.PI * p) * settle;
-      if (dipAge > 0.35) rippleAge = dipAge - 0.35;
+      dip = -0.1 * settle + 0.006 * Math.sin(2 * Math.PI * p) * settle;
     }
+    // the ring keeps spreading and dissolving long after the lantern has risen
+    const ringAge = dipAge - 0.35;
+    const rippleAge = ringAge > 0 && ringAge < 7.4 ? ringAge : -1;
     state.dip = dip;
     state.rippleAge = rippleAge;
-    state.floatY = 0.035 + 0.022 * Math.sin(state.animTime * 0.85) + dip;
+    state.floatY = Math.max(0.002, 0.1 + 0.012 * Math.sin(state.animTime * 0.85) + dip);
 
     // idle hint ("旋转") after three quiet seconds
     if (el.hint) {

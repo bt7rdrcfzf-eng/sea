@@ -514,6 +514,27 @@
     return { geo: g, alpha: 0.045 };
   }
 
+  /* a little floating lantern, used a few times on the water */
+  function buildSmallLanternFrame() {
+    const g = Geo();
+    addCylinder(g, [0, 0, 0], [0, 0.05, 0], 0.36, 0.33, 8, WOOD_DARK, WOOD_MID);
+    addCylinder(g, [0, 0.05, 0], [0, 0.07, 0], 0.33, 0.32, 8, BRASS, BRASS);
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * TAU + Math.PI / 4;
+      addBox(g, Math.cos(a) * 0.19, 0.22, Math.sin(a) * 0.19, 0.035, 0.32, 0.035, WOOD_DARK, 0, 0);
+    }
+    addCylinder(g, [0, 0.37, 0], [0, 0.41, 0], 0.31, 0.31, 8, WOOD_MID, WOOD_LIGHT);
+    addCylinder(g, [0, 0.41, 0], [0, 0.48, 0], 0.33, 0.06, 8, WOOD_DARK, WOOD_LIGHT);
+    addCylinder(g, [0, 0.48, 0], [0, 0.52, 0], 0.03, 0.012, 8, BRASS, BRASS);
+    return g;
+  }
+
+  function buildSmallLanternPaper() {
+    const g = Geo();
+    addBox(g, 0, 0.225, 0, 0.3, 0.29, 0.3, [1, 0.93, 0.78]);
+    return g;
+  }
+
   /* one petal, base at origin, pointing +Y, with a soft cup */
   function buildPetalGeo() {
     const g = Geo();
@@ -745,6 +766,13 @@
     const glassFace = buildCaseGlass();
     const glassMesh = renderer.makeMesh(glassFace.geo);
     const glassAlpha = glassFace.alpha;
+    const smallFrameMesh = renderer.makeMesh(buildSmallLanternFrame());
+    const smallPaperMesh = renderer.makeMesh(buildSmallLanternPaper());
+    const smalls = [
+      { xf: -1.0, zf: 0.45, s: 1.15, phase: 0.7, rot: 0.4 },
+      { xf: 0.96, zf: 0.58, s: 1.0, phase: 2.4, rot: 1.2 },
+      { xf: -0.45, zf: 0.82, s: 0.85, phase: 4.1, rot: 2.6 },
+    ];
 
     // tree (branch tips first)
     const tips = [];
@@ -1205,6 +1233,27 @@
         renderer.drawSprite(tex.glow, matD, [1, 0.72, 0.4], 0.34 * night, 'add');
       }
 
+      // a few small lanterns on the water, each with a soft reflection
+      const spread = clamp(layout.aspect * 2.1 + 1.8, 3.0, 5.3);
+      const smallPos = (S) => {
+        const sx = spread * S.xf + Math.sin(wt * 0.12 + S.phase) * 0.1;
+        const sz = spread * S.zf + Math.cos(wt * 0.1 + S.phase) * 0.08;
+        const bob = 0.012 + 0.01 * Math.sin(wt * 0.8 + S.phase);
+        return [sx, sz, bob];
+      };
+      for (let si = 0; si < smalls.length; si++) {
+        const S = smalls[si];
+        const [sx, sz, bob] = smallPos(S);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, S.s, S.s, S.s);
+        m4.multiply(matD, mirror, matA);
+        renderer.drawMesh(smallFrameMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1 });
+        renderer.drawMesh(smallPaperMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1, emissive: 0.03 + night * 0.4 });
+        if (night > 0.02) {
+          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, -bob - 0.2 * S.s, sz], 0, 1.0 * S.s, 1.0 * S.s);
+          renderer.drawSprite(tex.glow, matD, [1, 0.72, 0.4], 0.13 * night, 'add');
+        }
+      }
+
       // water surface
       m4.compose(waterModel, 0, 0, 0, 0, -Math.PI / 2, 0, 190, 190, 1);
       const wShallow = mixRgb(mixRgb([0.66, 0.77, 0.74], [0.07, 0.13, 0.15], night), pal.accent, 0.05);
@@ -1226,6 +1275,14 @@
       renderer.setDepth(true, true);
 
       // actual lantern above the water
+      for (let si = 0; si < smalls.length; si++) {
+        const S = smalls[si];
+        const [sx, sz, bob] = smallPos(S);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0, 0, S.s, S.s, S.s);
+        renderer.drawMesh(smallFrameMesh, matA);
+        renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.05 + night * 0.85 });
+      }
+
       renderer.drawMesh(raftMesh, groupModel);
       if (treeFade > 0.01) {
         renderer.drawMesh(treeMesh, treeModel, { tint: trunkTint, tintMix: 0.5, opacity: treeFade });
@@ -1252,7 +1309,9 @@
         const cx = camera.target[0] + camera.right[0] * tl.x + camera.up[0] * tl.y + camera.back[0] * tl.depth;
         const cyy = camera.target[1] + camera.right[1] * tl.x + camera.up[1] * tl.y + camera.back[1] * tl.depth;
         const czz = camera.target[2] + camera.right[2] * tl.x + camera.up[2] * tl.y + camera.back[2] * tl.depth;
-        const floatY = Math.sin(time * 0.5) * 0.025 + (1 - text.alpha) * 0.18;
+        // the season glyph rises out of the pavilion as it fades in
+        const rise = Math.pow(1 - clamp(text.alpha, 0, 1), 1.5) * 2.2;
+        const floatY = Math.sin(time * 0.5) * 0.02 - rise;
         const pos = [cx, cyy + floatY, czz];
 
         const shScale = size * 1.03;
@@ -1263,27 +1322,33 @@
         ], 0, shScale, shScale);
         renderer.setDepth(false, true);
         renderer.drawSprite(glyph.shadow, shadowModel, [
-          pal.accentDeep[0] * 0.24,
-          pal.accentDeep[1] * 0.2,
-          pal.accentDeep[2] * 0.17,
-        ], (0.18 - night * 0.08) * text.alpha, 'normal');
+          0.3, 0.26, 0.22,
+        ], (0.035 - night * 0.02) * text.alpha, 'normal');
         renderer.setDepth(true, true);
 
-        const midColor = mixRgb(pal.accent, [1, 1, 1], 0.4 + 0.12 * night);
-        const top = mixRgb(midColor, [1, 0.985, 0.95], 0.55);
-        const bottom = mixRgb(
-          mixRgb(pal.accent, pal.accentDeep, 0.55),
-          [1, 1, 1],
-          night * 0.16,
-        );
+        const dayMix = mixRgb(pal.accent, pal.petal, 0.35);
+        const midColor = mixRgb(dayMix, [1, 1, 1], 0.16 + 0.14 * night);
+        const top = mixRgb(midColor, [1, 0.99, 0.96], 0.6);
+        const bottom = mixRgb(dayMix, [1, 1, 1], 0.02 + 0.2 * night);
         m4.billboard(textModel, camera.right, camera.up, camera.back, pos, 0, size, size);
         renderer.drawText(
           glyph.tex, textModel, top, midColor, bottom,
-          text.alpha * (0.95 + 0.05 * night), 0.5,
+          text.alpha * (0.98 + 0.02 * night), 0.22,
         );
       }
 
       renderer.drawGlass(glassMesh, coverModel, pal.glass, glassAlpha * (1 - coverAmt * 0.94));
+
+      if (night > 0.02) {
+        renderer.setDepth(false, true);
+        for (let si = 0; si < smalls.length; si++) {
+          const S = smalls[si];
+          const [sx, sz, bob] = smallPos(S);
+          m4.billboard(matD, camera.right, camera.up, camera.back, [sx, bob + 0.24 * S.s, sz], 0, 1.15 * S.s, 1.15 * S.s);
+          renderer.drawSprite(tex.glow, matD, [1, 0.74, 0.42], 0.36 * night, 'add');
+        }
+        renderer.setDepth(true, true);
+      }
 
       drawFireflies(camera, wt, night);
 
