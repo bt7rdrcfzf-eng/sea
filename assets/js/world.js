@@ -559,7 +559,7 @@
     return g;
   }
 
-  function buildMapleLeaf() {
+  function buildMapleLeafOld() {
     const g = Geo();
     const center = [0, 0.012, 0];
     const R = 0.46;
@@ -606,16 +606,44 @@
 
   function buildFloatPetal() {
     const g = Geo();
-    const N = 9;
+    const center = [0, 0.02, 0];
     const cols = [[1, 0.84, 0.88], [1, 0.9, 0.93], [0.98, 0.8, 0.86]];
-    const center = [0, 0.008, 0];
+    const N = 14;
     const pts = [];
     for (let i = 0; i < N; i++) {
       const a = (i / N) * TAU;
-      const r = 0.19 * (0.82 + 0.18 * Math.sin(a * 3.0 + 0.5));
-      pts.push([Math.cos(a) * r, 0.004, Math.sin(a) * r]);
+      const x = Math.sin(a) * 0.12 * (0.9 + 0.1 * Math.cos(2 * a));
+      const z = -0.05 + Math.cos(a) * 0.21;
+      pts.push([x, 0.006, z]);
     }
     for (let i = 0; i < N; i++) pushTri(g, center, pts[i], pts[(i + 1) % N], [0, 1, 0], cols[i % 3]);
+    return g;
+  }
+
+  function buildMapleLeaf() {
+    const g = Geo();
+    const center = [0, 0.02, 0];
+    const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
+    const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
+    const pts = [];
+    for (let li = 0; li < 5; li++) {
+      const a = order[li];
+      const aPrev = order[(li + 4) % 5];
+      const aNext = order[(li + 1) % 5];
+      const aNotchL = (aPrev + a) / 2;
+      const aNotchR = (a + aNext) / 2;
+      pts.push([Math.cos(aNotchL) * 0.24, 0.004, Math.sin(aNotchL) * 0.24]);
+      pts.push([Math.cos(a - 0.16) * 0.42, 0.007, Math.sin(a - 0.16) * 0.42]);
+      pts.push([Math.cos(a) * 0.55, 0.01, Math.sin(a) * 0.55]);
+      pts.push([Math.cos(a + 0.16) * 0.42, 0.007, Math.sin(a + 0.16) * 0.42]);
+    }
+    for (let i = 0; i < pts.length; i++) pushTri(g, center, pts[i], pts[(i + 1) % pts.length], [0, 1, 0], cols[i % 3]);
+    for (let k = 0; k < 5; k++) {
+      const a = order[k];
+      const r = 0.42;
+      addBox(g, Math.cos(a) * r * 0.5, 0.012, Math.sin(a) * r * 0.5, 0.012, 0.005, r, hexToRgb('#7a4a28'), Math.PI / 2 - a, 0);
+    }
+    addBox(g, 0, 0.006, -0.3, 0.018, 0.008, 0.2, hexToRgb('#6e4a2c'), 0, 0);
     return g;
   }
 
@@ -896,7 +924,7 @@
     const smalls = [
       { xf: -1.15, zf: 0.55, s: 1.3, phase: 0.7, rot: 0.4 },
       { xf: 1.15, zf: 0.45, s: 0.8, phase: 2.4, rot: 1.2 },
-      { xf: 0.9, zf: -0.7, s: 1.0, phase: 4.1, rot: 2.6 },
+      { xf: 0.0, zf: 1.2, s: 1.0, phase: 4.1, rot: 2.6 },
     ];
     const lotusLeafMesh = renderer.makeMesh(buildLotusLeaf());
     const mapleMesh = renderer.makeMesh(buildMapleLeaf());
@@ -906,27 +934,29 @@
     const blossomMesh = renderer.makeMesh(buildBlossom());
     const decos = {
       spring: [
-        { t: 'blossom', x: -4.2, z: 1.8, rot: 0.4, s: 1.0, tint: [1, 0.86, 0.9] },
-        { t: 'blossom', x: 4.2, z: 1.2, rot: 2.0, s: 1.2, tint: [1, 0.92, 0.94] },
-        { t: 'blossom', x: -4.0, z: -1.8, rot: 4.2, s: 0.85, tint: [1, 0.8, 0.86] },
-        { t: 'blossom', x: 4.0, z: -1.8, rot: 1.3, s: 1.05, tint: [1, 0.9, 0.92] },
+        { t: 'float', x: -4.2, z: 1.8, rot: 0.4, s: 0.8, tint: [1, 0.86, 0.9] },
+        { t: 'float', x: 4.2, z: 1.2, rot: 2.0, s: 0.9, tint: [1, 0.92, 0.94] },
+        { t: 'float', x: -4.0, z: -1.8, rot: 4.2, s: 0.7, tint: [1, 0.8, 0.86] },
+        { t: 'float', x: 4.0, z: -1.8, rot: 1.3, s: 0.85, tint: [1, 0.9, 0.92] },
+        { t: 'float', x: -1.4, z: 3.4, rot: 5.1, s: 0.75, tint: [1, 0.84, 0.88] },
+        { t: 'float', x: 1.6, z: 3.2, rot: 3.3, s: 0.8, tint: [1, 0.88, 0.9] },
       ],
       summer: [
-        { t: 'leaf', x: -4.2, z: 1.0, rot: 0.2, s: 1.35 },
-        { t: 'leaf', x: 4.4, z: 0.2, rot: 1.8, s: 1.15 },
+        { t: 'leaf', x: -4.2, z: 1.8, rot: 0.2, s: 1.3 },
+        { t: 'leaf', x: 4.2, z: 1.2, rot: 1.8, s: 1.15 },
         { t: 'leaf', x: -4.0, z: -1.8, rot: 3.2, s: 1.0 },
-        { t: 'flower', x: 4.2, z: -0.6, rot: 1.0, s: 1.15 },
+        { t: 'flower', x: 4.0, z: -1.8, rot: 1.0, s: 1.25 },
       ],
       autumn: [
-        { t: 'leaf2', x: -4.2, z: 1.8, rot: 0.3, s: 1.35, tint: [1, 0.8, 0.62] },
-        { t: 'leaf2', x: 4.2, z: -1.2, rot: 2.1, s: 1.15, tint: [1, 0.72, 0.54] },
-        { t: 'leaf2', x: -3.8, z: -2.2, rot: 4.0, s: 1.2, tint: [1, 0.9, 0.74] },
-        { t: 'leaf2', x: 0.0, z: -4.0, rot: 1.2, s: 1.1, tint: [1, 0.84, 0.66] },
+        { t: 'maple', x: -4.2, z: 1.8, rot: 0.3, s: 1.15, tint: [1, 0.8, 0.62] },
+        { t: 'maple', x: 4.2, z: 1.2, rot: 2.1, s: 1.0, tint: [1, 0.72, 0.54] },
+        { t: 'maple', x: -4.0, z: -1.8, rot: 4.0, s: 1.1, tint: [1, 0.9, 0.74] },
+        { t: 'maple', x: 4.0, z: -1.8, rot: 1.2, s: 0.95, tint: [1, 0.84, 0.66] },
       ],
       winter: [
-        { t: 'ice', x: -4.2, z: 1.2, rot: 0.4, s: 1.35 },
-        { t: 'ice', x: 4.4, z: -0.8, rot: 1.6, s: 1.1 },
-        { t: 'ice', x: -2.4, z: -3.0, rot: 3.0, s: 1.2 },
+        { t: 'ice', x: -4.2, z: 1.8, rot: 0.4, s: 1.3 },
+        { t: 'ice', x: 4.2, z: 1.2, rot: 1.6, s: 1.1 },
+        { t: 'ice', x: -4.0, z: -1.8, rot: 3.0, s: 1.2 },
       ],
     };
 
@@ -1394,14 +1424,14 @@
       const smallPos = (S) => {
         const sx = spread * S.xf + Math.sin(wt * 0.12 + S.phase) * 0.1;
         const sz = spread * S.zf + Math.cos(wt * 0.1 + S.phase) * 0.08;
-        const bob = 0.012 + 0.01 * Math.sin(wt * 0.8 + S.phase);
+        const bob = 0.016 + 0.014 * Math.sin(wt * 0.8 + S.phase);
         const sc = S.s * (1.0 + 0.035 * Math.sin(wt * 0.55 + S.phase));
         return [sx, sz, bob, sc];
       };
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
         const [sx, sz, bob, sc] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.02 * Math.sin(wt * 0.6 + S.phase), 0.02 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.03 * Math.sin(wt * 0.6 + S.phase), 0.03 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
         m4.multiply(matD, mirror, matA);
         renderer.drawMesh(smallFrameMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1 });
         renderer.drawMesh(smallPaperMesh, matD, { ghost: true, opacity: 0.2, dim: 0.6, wave: 1, emissive: 0.03 + night * 0.4 });
@@ -1417,8 +1447,9 @@
       const i0 = Math.floor(slot) % 4;
       const f = slot - Math.floor(slot);
       const i1 = (i0 + 1) % 4;
-      const decoSpread = clamp(layout.aspect * 1.8 + 1.7, 2.9, 4.0);
+      const decoSpread = clamp(layout.aspect * 1.8 + 1.7, 3.6, 4.0);
       const dxs = decoSpread / 4.0;
+      const narrow = layout.aspect < 0.7;
       const summerPal = PALETTES[1];
       const flowerTint = [1, 0.68, 0.76];
       const wSummer = i0 === 1 ? 1 - f : (i1 === 1 ? f : 0);
@@ -1426,11 +1457,12 @@
       const drawLotusFlower = (d, w, refl) => {
         const x = d.x * dxs;
         const z = d.z * dxs;
-        const sc = d.s * (0.9 + 0.12 * dxs);
-        const bob = 0.012 * Math.sin(wt * 0.8 + d.x);
-        const sway = 0.035 * Math.sin(wt * 0.5 + d.z);
-        const tiltX = 0.012 * Math.sin(wt * 0.4 + d.x);
-        const tiltZ = 0.015 * Math.cos(wt * 0.35 + d.z);
+        const ease = w * w * (3 - 2 * w);
+        const sc = d.s * (0.9 + 0.12 * dxs) * (0.7 + 0.3 * ease);
+        const bob = 0.018 * Math.sin(wt * 0.8 + d.x);
+        const sway = 0.055 * Math.sin(wt * 0.45 + d.z);
+        const tiltX = 0.025 * Math.sin(wt * 0.38 + d.x);
+        const tiltZ = 0.032 * Math.cos(wt * 0.33 + d.z);
         m4.compose(matA, x, 0.02 + bob, z, d.rot + sway, tiltX, tiltZ, sc, sc, sc);
         if (refl) m4.multiply(matD, mirror, matA);
         const base = refl ? matD : matA;
@@ -1438,7 +1470,7 @@
         const ghost = refl;
         const wave = refl ? 0.6 : 0;
         // stem
-        m4.compose(matB, 0, 0, 0, 0, 0, 0, 0.95, 0.62, 0.95);
+        m4.compose(matB, 0, 0, 0, 0, 0, 0, 0.5, 0.62, 0.5);
         m4.multiply(matC, base, matB);
         renderer.drawMesh(stemMesh, matC, { tint: [0.32, 0.46, 0.22], tintMix: 1, opacity: op, ghost, wave });
         // two rings of petals
@@ -1447,7 +1479,7 @@
           for (let pi = 0; pi < n; pi++) {
             const a = (pi / n) * TAU + (ri ? 0.5 : 0);
             const tilt = ri ? 0.55 : 1.02;
-            m4.compose(matB, 0, 0.62, 0, a, tilt, 0, 0.2, 0.34, 0.2);
+            m4.compose(matB, 0, 0.62, 0, a, tilt, 0, 0.3, 0.5, 0.3);
             m4.multiply(matC, base, matB);
             renderer.drawMesh(petalMesh, matC, {
               tint: flowerTint, tintMix: 1, opacity: op, ghost, wave,
@@ -1456,7 +1488,7 @@
           }
         }
         // heart
-        m4.compose(matB, 0, 0.66, 0, 0, 0, 0, 0.12, 0.12, 0.12);
+        m4.compose(matB, 0, 0.66, 0, 0, 0, 0, 0.18, 0.18, 0.18);
         m4.multiply(matC, base, matB);
         renderer.drawMesh(flowerCoreMesh, matC, { opacity: op, ghost, wave, emissive: 0.08 });
       };
@@ -1466,16 +1498,18 @@
         const list = decos[key];
         if (!list) return;
         for (let di = 0; di < list.length; di++) {
+          if (narrow && di >= 3) break;
           const d = list[di];
           if (d.t === 'flower') continue;
-          const x = d.x * dxs + Math.sin(wt * 0.1 + di) * 0.05;
-          const z = d.z * dxs + Math.cos(wt * 0.08 + di) * 0.04;
-          const sc = d.s * (0.9 + 0.12 * dxs);
+          const x = d.x * dxs + Math.sin(wt * 0.1 + di) * 0.08;
+          const z = d.z * dxs + Math.cos(wt * 0.08 + di) * 0.06;
+          const ease = w * w * (3 - 2 * w);
+          const sc = d.s * (0.9 + 0.12 * dxs) * (0.7 + 0.3 * ease);
           const y = 0.035;
-          const bob = 0.01 * Math.sin(wt * 0.9 + di * 1.7);
-          const sway = 0.06 * Math.sin(wt * 0.32 + di * 1.9);
-          const pitch = 0.018 * Math.sin(wt * 0.55 + di * 1.3);
-          const roll = 0.022 * Math.cos(wt * 0.43 + di * 1.1);
+          const bob = 0.018 * Math.sin(wt * 0.9 + di * 1.7);
+          const sway = 0.12 * Math.sin(wt * 0.32 + di * 1.9);
+          const pitch = 0.035 * Math.sin(wt * 0.55 + di * 1.3);
+          const roll = 0.045 * Math.cos(wt * 0.43 + di * 1.1);
           m4.compose(matA, x, y + bob, z, d.rot + sway, pitch, roll, sc, sc, sc);
           renderer.setDepth(false, true);
           m4.billboard(matD, camera.right, camera.up, camera.back, [x, 0.006, z], 0, sc * 1.5, sc * 1.5);
@@ -1484,17 +1518,17 @@
           let mesh = iceMesh;
           let tint = [0.8, 0.9, 0.96];
           let mix = 0.35;
-          let op = w * 0.5;
+          let op = w * 0.5 * ease;
           if (d.t === 'blossom') {
-            mesh = blossomMesh; tint = d.tint; mix = 1; op = w * 0.95;
+            mesh = blossomMesh; tint = d.tint; mix = 1; op = w * 0.95 * ease;
           } else if (d.t === 'float') {
-            mesh = floatPetalMesh; tint = d.tint; mix = 1; op = w * 0.92;
+            mesh = floatPetalMesh; tint = d.tint; mix = 1; op = w * 0.92 * ease;
           } else if (d.t === 'leaf2') {
-            mesh = floatLeafMesh; tint = d.tint; mix = 0.45; op = w * 0.94;
+            mesh = floatLeafMesh; tint = d.tint; mix = 0.45; op = w * 0.94 * ease;
           } else if (d.t === 'leaf') {
-            mesh = lotusLeafMesh; op = w * 0.94;
+            mesh = lotusLeafMesh; op = w * 0.94 * ease;
           } else if (d.t === 'maple') {
-            mesh = mapleMesh; tint = d.tint; mix = 0.5; op = w * 0.94;
+            mesh = mapleMesh; tint = d.tint; mix = 0.5; op = w * 0.94 * ease;
           }
           renderer.drawMesh(mesh, matA, { tint, tintMix: mix, opacity: op });
         }
@@ -1537,7 +1571,7 @@
       for (let si = 0; si < smalls.length; si++) {
         const S = smalls[si];
         const [sx, sz, bob, sc] = smallPos(S);
-        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.02 * Math.sin(wt * 0.6 + S.phase), 0.02 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
+        m4.compose(matA, sx, bob, sz, S.rot + wt * 0.02, 0.03 * Math.sin(wt * 0.6 + S.phase), 0.03 * Math.cos(wt * 0.5 + S.phase), sc, sc, sc);
         renderer.drawMesh(smallFrameMesh, matA);
         renderer.drawMesh(smallPaperMesh, matA, { emissive: 0.12 + night * 0.8 });
       }

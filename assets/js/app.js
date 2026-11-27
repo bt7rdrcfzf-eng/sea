@@ -89,7 +89,7 @@
     let halfH;
     if (narrow) {
       // portrait / square: a large lantern, glyph above it
-      halfH = Math.max(8.0, 7.4 / (2 * aspect));
+      halfH = Math.max(9.0, 8.4 / (2 * aspect));
       if (mobile) {
         halfH = Math.max(halfH, (9.2 / (availableH / h)) * 0.5);
       }
