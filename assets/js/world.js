@@ -1,4 +1,4 @@
-/* 季忆 — 场景的几何、材质与季节状态 */
+﻿/* 季忆 — 场景的几何、材质与季节状态 */
 (function () {
   'use strict';
   const S4 = window.S4;
@@ -615,11 +615,11 @@
       const a = (i / N) * TAU;
       const x = Math.sin(a) * 0.12 * wf * (0.9 + 0.1 * Math.cos(2 * a));
       const z = -0.05 + Math.cos(a) * (0.19 + 0.03 * v);
-      top.push([x, 0.01, z]);
-      bot.push([x, -0.006, z]);
+      top.push([x, 0.008, z]);
+      bot.push([x, -0.001, z]);
     }
-    const cTop = [0, 0.028, 0];
-    const cBot = [0, -0.004, 0];
+    const cTop = [0, 0.018, 0];
+    const cBot = [0, -0.001, 0];
     for (let i = 0; i < N; i++) {
       const j = (i + 1) % N;
       pushTri(g, cTop, top[i], top[j], [0, 1, 0], cols[i % 3]);
@@ -632,8 +632,8 @@
 
   function buildMapleLeaf(v = 0) {
     const g = Geo();
-    const center = [0, 0.028, 0];
-    const bottom = [0, -0.008, 0];
+    const center = [0, 0.018, 0];
+    const bottom = [0, -0.001, 0];
     const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
     const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
     const top = [];
@@ -647,12 +647,12 @@
       const notch = 0.23 + 0.035 * v;
       const shoulder = 0.4 + 0.04 * v;
       const tip = 0.52 + 0.05 * v;
-      top.push([Math.cos(aNotchL) * notch, 0.006, Math.sin(aNotchL) * notch]);
-      top.push([Math.cos(a - 0.16) * shoulder, 0.009, Math.sin(a - 0.16) * shoulder]);
-      top.push([Math.cos(a) * tip, 0.013, Math.sin(a) * tip]);
-      top.push([Math.cos(a + 0.16) * shoulder, 0.009, Math.sin(a + 0.16) * shoulder]);
+      top.push([Math.cos(aNotchL) * notch, 0.005, Math.sin(aNotchL) * notch]);
+      top.push([Math.cos(a - 0.16) * shoulder, 0.007, Math.sin(a - 0.16) * shoulder]);
+      top.push([Math.cos(a) * tip, 0.01, Math.sin(a) * tip]);
+      top.push([Math.cos(a + 0.16) * shoulder, 0.007, Math.sin(a + 0.16) * shoulder]);
     }
-    for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.012, top[i][2]]);
+    for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.006, top[i][2]]);
     for (let i = 0; i < top.length; i++) {
       const j = (i + 1) % top.length;
       pushTri(g, center, top[i], top[j], [0, 1, 0], cols[i % 3]);
@@ -957,7 +957,7 @@
     const fallers = [];
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * TAU + 0.3;
-      const r = 4.2 + (i % 3) * 0.5;
+      const r = 6.8 + (i % 3) * 0.25;
       fallers.push({
         kind: 0,
         x: Math.cos(a) * r,
@@ -972,7 +972,7 @@
     }
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * TAU + 0.8;
-      const r = 4.2 + (i % 3) * 0.5;
+      const r = 6.8 + (i % 3) * 0.25;
       fallers.push({
         kind: 1,
         x: Math.cos(a) * r,
@@ -1598,6 +1598,34 @@
       m4.compose(waterModel, 0, 0, 0, 0, -Math.PI / 2, 0, 190, 190, 1);
       const wShallow = mixRgb(mixRgb([0.66, 0.77, 0.74], [0.07, 0.13, 0.15], night), pal.accent, 0.05);
       const wDeep = mixRgb(mixRgb([0.38, 0.54, 0.55], [0.018, 0.05, 0.075], night), pal.accentDeep, 0.04);
+      // small landing ripples for falling petals / maple leaves
+      const landRipples = new Float32Array(12);
+      {
+        const list = [];
+        for (let fi = 0; fi < fallers.length; fi++) {
+          const f = fallers[fi];
+          const w = f.kind === 0 ? wSpring : wAutumn;
+          if (w < 0.05) continue;
+          const cyc = (wt * f.speed + f.phase) % 1;
+          const age = cyc / f.speed;
+          if (age > 2.2) continue;
+          const landT = wt - age;
+          list.push({
+            x: f.x + Math.sin(landT * 0.85 + f.phase * 6.28) * (0.55 + 0.2 * Math.sin(landT * 0.4 + f.phase * 9)),
+            z: f.z + Math.cos(landT * 0.65 + f.phase * 6.28) * 0.5,
+            age,
+            w,
+          });
+        }
+        list.sort((a, b) => a.age - b.age);
+        for (let i = 0; i < 3 && i < list.length; i++) {
+          landRipples[i * 4] = list[i].x;
+          landRipples[i * 4 + 1] = list[i].z;
+          landRipples[i * 4 + 2] = list[i].age;
+          landRipples[i * 4 + 3] = list[i].w;
+        }
+      }
+
       renderer.drawWater(waterModel, {
         deep: wDeep,
         shallow: wShallow,
@@ -1606,6 +1634,7 @@
         rippleCenter: [0, 0],
         rippleAge: rippleAge == null ? -1 : rippleAge,
         rippleStrength: 1,
+        landRipples,
       });
 
       // contact shadow on the water
@@ -1629,10 +1658,13 @@
           const f = fallers[fi];
           if (f.kind !== kind) continue;
           const cyc = (wt * f.speed + f.phase) % 1;
-          const y = 8.2 * (1 - cyc) + 0.2;
-          const x = f.x + Math.sin(wt * 0.45 + f.phase * 6.28) * 0.45;
-          const z = f.z + Math.cos(wt * 0.4 + f.phase * 6.28) * 0.4;
-          m4.compose(matA, x, y, z, f.rot + wt * 0.6, Math.sin(wt * 0.8 + f.phase * 6.28) * 0.9, Math.cos(wt * 0.7 + f.phase * 6.28) * 0.7, f.size, f.size, f.size);
+          const y = 8.2 * (1 - Math.pow(cyc, 1.12)) + 0.2;
+          const swing = Math.sin(wt * 0.85 + f.phase * 6.28);
+          const x = f.x + swing * (0.55 + 0.2 * Math.sin(wt * 0.4 + f.phase * 9));
+          const z = f.z + Math.cos(wt * 0.65 + f.phase * 6.28) * 0.5;
+          const flap = Math.sin(wt * 1.75 + f.phase * 6.28) * 1.05;
+          const roll = Math.cos(wt * 1.25 + f.phase * 6.28) * 0.8;
+          m4.compose(matA, x, y, z, f.rot + wt * 0.45, flap, roll, f.size, f.size, f.size);
           renderer.drawMesh(kind === 0 ? floatPetalMeshes[f.v] : mapleMeshes[f.v], matA, {
             tint: f.tint, tintMix: kind === 0 ? 1 : 0.55, opacity: weight * 0.92,
           });
@@ -1746,3 +1778,5 @@
   S4.createWorld = createWorld;
   S4.PALETTES = PALETTES;
 })();
+
+

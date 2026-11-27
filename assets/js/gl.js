@@ -217,6 +217,7 @@ uniform vec3 uLight;
 uniform vec2 uRippleCenter;
 uniform float uRippleAge;
 uniform float uRippleStrength;
+uniform vec4 uLandRipples[3];
 out vec4 fragColor;
 
 float hash21(vec2 p) {
@@ -293,6 +294,19 @@ void main() {
     float slope = cos(phase) * 7.0 * env * fade;
     h += rippleElev * 0.04;
     g += dir * slope * 0.10;
+  }
+
+  // small ripples from petals / maple leaves landing on the water
+  for (int li = 0; li < 3; li++) {
+    vec4 lr = uLandRipples[li];
+    if (lr.z > 0.0 && lr.z < 2.2) {
+      float ld = length(p - lr.xy);
+      float lf = 0.22 * lr.z / (1.0 + lr.z * 0.3);
+      float lw = 0.16 + lr.z * 0.12;
+      float lenv = exp(-pow((ld - lf) / lw, 2.0)) * (1.0 - smoothstep(1.8, 2.2, lr.z));
+      float lph = (ld - lf) * 6.5;
+      rippleElev += sin(lph) * lenv * 0.55 * lr.w;
+    }
   }
 
   vec3 n = normalize(vec3(-g.x * 0.04, 1.0, -g.y * 0.04));
@@ -696,6 +710,7 @@ void main() {
       gl.uniform2fv(water.u('uRippleCenter'), colors.rippleCenter);
       gl.uniform1f(water.u('uRippleAge'), colors.rippleAge);
       gl.uniform1f(water.u('uRippleStrength'), colors.rippleStrength);
+      gl.uniform4fv(water.u('uLandRipples'), colors.landRipples || new Float32Array(12));
       gl.bindVertexArray(quadVao);
       setBlend('normal');
       gl.enable(gl.DEPTH_TEST);
