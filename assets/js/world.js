@@ -1,4 +1,4 @@
-﻿/* 季忆 — 场景的几何、材质与季节状态 */
+/* 季忆 — 场景的几何、材质与季节状态 */
 (function () {
   'use strict';
   const S4 = window.S4;
@@ -606,34 +606,68 @@
 
   function buildFloatPetal(v = 0) {
     const g = Geo();
-    const wf = 0.82 + 0.28 * v;
-    const cols = [[1, 0.84, 0.88], [1, 0.9, 0.93], [0.98, 0.8, 0.86]];
-    const N = 14;
     const top = [];
     const bot = [];
-    for (let i = 0; i < N; i++) {
-      const a = (i / N) * TAU;
-      const x = Math.sin(a) * 0.12 * wf * (0.9 + 0.1 * Math.cos(2 * a));
-      const z = -0.05 + Math.cos(a) * (0.19 + 0.03 * v);
-      top.push([x, 0.008, z]);
-      bot.push([x, -0.001, z]);
+    const NU = 8;
+    const NV = 6;
+    const len = 0.42 + 0.04 * v;
+    const wid = 0.15 + 0.02 * v;
+    for (let iu = 0; iu <= NU; iu++) {
+      const t = iu / NU;
+      const z = -0.06 + len * t;
+      const profile = Math.sin(Math.PI * (0.16 + 0.84 * t));
+      const w = wid * Math.max(0.04, profile);
+      for (let iv = 0; iv <= NV; iv++) {
+        const u = (iv / NV) * 2 - 1;
+        const x = u * w;
+        const cup = 0.055 * u * u * (1.0 - 0.35 * t);
+        const curl = -0.07 * t * t + 0.012 * Math.sin(t * Math.PI);
+        const y = 0.014 + cup + curl;
+        top.push([x, y, z]);
+        bot.push([x, y - 0.004, z]);
+      }
     }
-    const cTop = [0, 0.018, 0];
-    const cBot = [0, -0.001, 0];
-    for (let i = 0; i < N; i++) {
-      const j = (i + 1) % N;
-      pushTri(g, cTop, top[i], top[j], [0, 1, 0], cols[i % 3]);
-      pushTri(g, cBot, bot[j], bot[i], [0, -1, 0], [0.7, 0.54, 0.6]);
-      pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.86, 0.68, 0.74]);
-      pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.86, 0.68, 0.74]);
+    const cols = [[1, 0.84, 0.88], [1, 0.9, 0.93], [0.98, 0.8, 0.86]];
+    for (let iu = 0; iu < NU; iu++) {
+      for (let iv = 0; iv < NV; iv++) {
+        const a = iu * (NV + 1) + iv;
+        const b = a + 1;
+        const c = a + (NV + 1);
+        const d = c + 1;
+        pushTri(g, top[a], top[c], top[b], [0, 1, 0], cols[(iu + iv) % 3]);
+        pushTri(g, top[b], top[c], top[d], [0, 1, 0], cols[(iu + iv + 1) % 3]);
+        pushTri(g, bot[a], bot[b], bot[c], [0, -1, 0], [0.7, 0.54, 0.6]);
+        pushTri(g, bot[b], bot[d], bot[c], [0, -1, 0], [0.7, 0.54, 0.6]);
+      }
+    }
+    const rim = [0.86, 0.68, 0.74];
+    for (let iu = 0; iu < NU; iu++) {
+      const a = iu * (NV + 1);
+      const b = (iu + 1) * (NV + 1);
+      const a2 = a + NV;
+      const b2 = b + NV;
+      pushTri(g, top[a], top[b], bot[b], [0, 0.2, 1], rim);
+      pushTri(g, top[a], bot[b], bot[a], [0, 0.2, 1], rim);
+      pushTri(g, top[a2], top[b2], bot[b2], [0, 0.2, 1], rim);
+      pushTri(g, top[a2], bot[b2], bot[a2], [0, 0.2, 1], rim);
+    }
+    for (let iv = 0; iv < NV; iv++) {
+      const a = iv;
+      const b = iv + 1;
+      const a2 = NU * (NV + 1) + iv;
+      const b2 = a2 + 1;
+      pushTri(g, top[a], top[b], bot[b], [0, 0.2, 1], rim);
+      pushTri(g, top[a], bot[b], bot[a], [0, 0.2, 1], rim);
+      pushTri(g, top[a2], top[b2], bot[b2], [0, 0.2, 1], rim);
+      pushTri(g, top[a2], bot[b2], bot[a2], [0, 0.2, 1], rim);
     }
     return g;
   }
 
   function buildMapleLeaf(v = 0) {
     const g = Geo();
-    const center = [0, 0.018, 0];
-    const bottom = [0, -0.001, 0];
+    const center = [0, 0.05, 0];
+    const bottom = [0, 0.044, 0];
     const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
     const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
     const top = [];
@@ -647,10 +681,10 @@
       const notch = 0.23 + 0.035 * v;
       const shoulder = 0.4 + 0.04 * v;
       const tip = 0.52 + 0.05 * v;
-      top.push([Math.cos(aNotchL) * notch, 0.005, Math.sin(aNotchL) * notch]);
-      top.push([Math.cos(a - 0.16) * shoulder, 0.007, Math.sin(a - 0.16) * shoulder]);
-      top.push([Math.cos(a) * tip, 0.01, Math.sin(a) * tip]);
-      top.push([Math.cos(a + 0.16) * shoulder, 0.007, Math.sin(a + 0.16) * shoulder]);
+      top.push([Math.cos(aNotchL) * notch, 0.008, Math.sin(aNotchL) * notch]);
+      top.push([Math.cos(a - 0.16) * shoulder, 0.018, Math.sin(a - 0.16) * shoulder]);
+      top.push([Math.cos(a) * tip, 0.024, Math.sin(a) * tip]);
+      top.push([Math.cos(a + 0.16) * shoulder, 0.018, Math.sin(a + 0.16) * shoulder]);
     }
     for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.006, top[i][2]]);
     for (let i = 0; i < top.length; i++) {
