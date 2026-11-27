@@ -43,7 +43,7 @@ npx serve .
 
 ## 发布到 GitHub Pages（分享到微信）
 
-这个目录已经按 GitHub Pages 的结构准备好：`index.html` 在根目录，`.github/workflows/deploy.yml` 会在 push 到 `main` 时自动部署。
+这个目录已经按 GitHub Pages 的结构准备好：`index.html` 在根目录，`.github/workflows/deploy.yml` 会在 push 到 `main` 时自动部署。当前远程是 `https://github.com/bt7rdrcfzf-eng/sea.git`，发布地址是 `https://bt7rdrcfzf-eng.github.io/sea/`。
 
 1. 在 GitHub 新建一个仓库（例如 `jiyi`），**把这个目录里的内容上传到仓库根目录**（不是把 `four-seasons` 文件夹整个套进去）。也可以用命令行：
 
@@ -65,10 +65,10 @@ git push -u origin main
 3. 等发布完成，访问 `https://<你的用户名>.github.io/<仓库名>/`。
 4. 微信里打开这个网址 → 右上角 `...` → **分享给朋友**；也可以直接把链接发到聊天里。
 
-**让微信链接卡片有封面图**：部署后把 `index.html` 头部 `<meta property="og:image">` 和 `twitter:image` 里的相对路径改成完整的线上地址，例如：
+**微信链接卡片**：`index.html` 里的 `og:image`、`twitter:image` 和 `image_src` 已经写成完整的线上地址：
 
 ```html
-<meta property="og:image" content="https://<你的用户名>.github.io/<仓库名>/docs/share.jpg" />
+<meta property="og:image" content="https://bt7rdrcfzf-eng.github.io/sea/docs/share.jpg" />
 ```
 
 微信抓取链接时会读取页面标题、`description` 和这张封面图（`docs/share.jpg` 是 1200×630 的分享版）。仓库必须是 **Public**，分享出去才能被打开。
