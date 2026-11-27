@@ -141,6 +141,12 @@
     pushTri(g, a, b, c, [nx, ny, nz], col);
   }
 
+  function pushTriN(g, a, b, c, na, nb, nc, col) {
+    g.pos.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
+    g.nrm.push(na[0], na[1], na[2], nb[0], nb[1], nb[2], nc[0], nc[1], nc[2]);
+    for (let i = 0; i < 3; i++) g.col.push(col[0], col[1], col[2]);
+  }
+
   function rotY(p, a) {
     const c = Math.cos(a), s = Math.sin(a);
     return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c];
@@ -685,7 +691,7 @@
   function buildMapleLeaf(v = 0) {
     const g = Geo();
     const center = [0, 0.035, 0];
-    const bottom = [0, 0.044, 0];
+    const bottom = [0, 0.029, 0];
     const cols = [[0.72, 0.45, 0.22], [0.8, 0.52, 0.26], [0.64, 0.4, 0.2]];
     const order = [-Math.PI / 6, Math.PI / 6, Math.PI / 2, (5 * Math.PI) / 6, (7 * Math.PI) / 6];
     const top = [];
@@ -707,7 +713,11 @@
     for (let i = 0; i < top.length; i++) bot.push([top[i][0], top[i][1] - 0.006, top[i][2]]);
     for (let i = 0; i < top.length; i++) {
       const j = (i + 1) % top.length;
-      pushTriS(g, center, top[i], top[j], cols[i % 3]);
+      const ni = [top[i][0] * 0.5, 1, top[i][2] * 0.5];
+      const nj = [top[j][0] * 0.5, 1, top[j][2] * 0.5];
+      const li = Math.hypot(ni[0], ni[1], ni[2]) || 1;
+      const lj = Math.hypot(nj[0], nj[1], nj[2]) || 1;
+      pushTriN(g, center, top[i], top[j], [0, 1, 0], [ni[0] / li, ni[1] / li, ni[2] / li], [nj[0] / lj, nj[1] / lj, nj[2] / lj], cols[i % 3]);
       pushTri(g, bottom, bot[j], bot[i], [0, -1, 0], [0.48, 0.3, 0.17]);
       pushTri(g, top[i], top[j], bot[j], [0, 0.3, 1], [0.58, 0.36, 0.2]);
       pushTri(g, top[i], bot[j], bot[i], [0, 0.3, 1], [0.58, 0.36, 0.2]);
@@ -1827,6 +1837,8 @@
   S4.createWorld = createWorld;
   S4.PALETTES = PALETTES;
 })();
+
+
 
 
 
